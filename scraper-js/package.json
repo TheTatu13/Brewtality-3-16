@@ -1,5 +1,5 @@
 {
-  "name": "scraper-company-template",
+  "name": "peviitor-scraper-template",
   "version": "1.0.0",
   "type": "module",
   "main": "scraper/index.js",

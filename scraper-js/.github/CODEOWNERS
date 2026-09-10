@@ -1,5 +1,5 @@
 # Default owner
-*       @sebiboga
+*       @{{GITHUB_OWNER}}
 
 # Code owners for specific directories
-/.github/workflows/ @sebiboga
+/.github/workflows/ @{{GITHUB_OWNER}}

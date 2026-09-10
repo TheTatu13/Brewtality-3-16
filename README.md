@@ -3,8 +3,11 @@
 Dual-language job-scraper **template** for [peviitor.ro](https://peviitor.ro),
 with a real **self-healing selector cascade** and an extended test suite.
 
-Two complete, parallel reference implementations — pick the language, copy the
-folder into a new repo, edit `config/`:
+Two complete, parallel reference implementations. Clone it and run
+**`node setup.js`** (or **`python setup.py`**) — one interactive script picks a
+language, asks for the company details, and turns the clone into a
+ready-to-commit scraper. Details in
+[Deriving a company scraper](#deriving-a-company-scraper).
 
 | | |
 |---|---|
@@ -70,8 +73,56 @@ JS↔Python parity table and the Scrapling guide).
 
 ## Deriving a company scraper
 
+### The interactive way (recommended)
+
+```bash
+git clone https://github.com/{owner}/Brewtality-3-16.git my-company-scraper
+cd my-company-scraper
+node setup.js       # …or:  python setup.py   — pick whichever you have
+```
+
+Either script does the same thing. It asks:
+
+1. **JavaScript or Python?** — type `js` / `py` (or `1` / `2`).
+2. Then, one prompt at a time: the company legal name, brand, CIF, website,
+   careers-page URL, job sitemap URL (optional), job-permalink prefix, HQ city,
+   the three primary CSS selectors (optional — Enter to keep only the generic
+   fallbacks), and the GitHub owner / repo name.
+3. It prints a **summary** and asks for confirmation.
+
+On confirm it rewrites the clone **in place**:
+
+- deletes the language folder you didn't pick;
+- promotes the one you did pick to the repo root;
+- fills every `{{PLACEHOLDER}}` with your answers;
+- sets the package/module name to `<company-slug>-scraper`
+  (`package.json` / `pyproject.toml`);
+- deletes both `setup.*` scripts and the template's `.git` history.
+
+At the end it prints exactly what's left to do:
+
+```
+OK - scraper generated for ACME WIDGETS SRL in JavaScript.
+  package/module name: acme-widgets-scraper
+  intended repo:       github.com/acme-dev/acme-widgets-nodejs-scraper
+
+Ready for the first commit:
+  git init && git add -A && git commit -m "Initial scraper for ACME WIDGETS SRL"
+  gh repo create acme-dev/acme-widgets-nodejs-scraper --public --source=. --push
+
+Next: tune the selectors in scraper/config/scraper.json
+      and adapt parseListing in scraper/index.js,
+      then run the tests (npm install && npm run test:unit).
+```
+
+The unit tests pass immediately after derivation (they use their own generic
+fixtures); the live tests self-skip until the company details resolve.
+
+### By hand
+
 1. Copy `scraper-js/` **or** `scraper-py/` into a new repo.
-2. Find-and-replace every `{{PLACEHOLDER}}` (table above) across the folder.
+2. Find-and-replace every `{{PLACEHOLDER}}` (table above) across the folder;
+   set `name` in `package.json` / `pyproject.toml`.
 3. In `config/scraper.json`, set the site's **primary** selectors; keep the
    generic fallbacks that follow them.
 4. Adapt `parse.py` / `parseListing` in `index.js` to the site's shape, and add

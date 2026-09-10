@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "peviitor-scraper-py"
+name = "peviitor-scraper-template"
 version = "0.1.0"
 description = "Self-healing job scraper skeleton for peviitor.ro (Python counterpart of the *-nodejs-scraper template)"
 requires-python = ">=3.10"

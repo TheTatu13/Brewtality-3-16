@@ -36,3 +36,29 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
       - run: pytest -q
+
+  # Run the derivation script on a throwaway checkout, then run the derived
+  # scraper's own tests — proves setup.js / setup.py + the result still work.
+  derive-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lang: [js, py]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Derive (${{ matrix.lang }})
+        run: |
+          ANSWERS='${{ matrix.lang }}\nSMOKE TEST SRL\nSmoke\n99999999\nhttps://smoke.example\nhttps://smoke.example/careers/\n\n\nCluj-Napoca\n\n\n\nsmoke-org\n\ny\n'
+          if [ "${{ matrix.lang }}" = "js" ]; then printf "$ANSWERS" | node setup.js; else printf "$ANSWERS" | python setup.py; fi
+      - name: Test the derived scraper (JS)
+        if: matrix.lang == 'js'
+        run: npm install && npm run test:unit
+      - name: Test the derived scraper (Python)
+        if: matrix.lang == 'py'
+        run: pip install -e ".[dev]" && pytest -q
