@@ -1,0 +1,46 @@
+# AGENTS.md — rules for AI agents
+
+## Project
+`peviitor-scraper-py` — self-healing job scraper skeleton for peviitor.ro
+(Python, `requests` + BeautifulSoup, pytest). The Python counterpart of the
+`*-nodejs-scraper` template.
+
+## Layout & what is generic vs. site-specific
+
+| Generic — copy verbatim into a derived scraper | Site-specific — edit per company |
+|---|---|
+| `scraper/self_healing.py` | `config/company.json` |
+| `scraper/validate.py` | `config/scraper.json` |
+| `scraper/fetch.py` | `scraper/parse.py` |
+| `scraper/api.py` | (the source URLs in `main.py`) |
+
+Never hardcode company identity in source — it lives in `config/company.json`
+and is read through `scraper/config.py`.
+
+## Self-healing cascade
+
+Every listing field is extracted by a top-to-bottom cascade of strategies, one
+`try/except` each, logged on failure/rescue:
+
+**primary CSS → fallback CSS → structural (itemprop / aria / JSON-LD) → regex → (optional) Scrapling**
+
+Full detail, JS↔Python parity table, and Scrapling notes: **[SELF-HEALING.md](SELF-HEALING.md)**.
+
+## Rules
+
+1. **Tests before commit.** `pytest` must be green. Add a test per new cascade level.
+2. **Canary.** `assert_scrape_yielded_jobs` runs before any write. Do not weaken it.
+3. **Validation.** New scraped fields go through `validate_job`; extend its rules, don't bypass.
+4. **Retry.** All outbound HTTP goes through `scraper/fetch.py` (retry + backoff). Don't call `requests` directly from `parse.py` / `api.py`.
+5. **Temp files** in `tmp/` only (gitignored).
+6. **Never commit credentials** (`.env.local`, API keys).
+7. **Scrapling is optional** — code must run and tests must pass without it installed.
+
+## Commands
+
+```bash
+pip install -e ".[dev]"
+pytest
+pytest tests/test_self_healing.py -q      # just the cascade
+python -m scraper.main --dry-run          # full pipeline, no writes
+```

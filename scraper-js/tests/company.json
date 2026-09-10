@@ -1,0 +1,73 @@
+{
+  "validatedAt": "2026-09-08T10:00:00.000Z",
+  "source": "CUIScan",
+  "brand": "Antibiotice",
+  "anaf": {
+    "cui": 1973096,
+    "name": "ANTIBIOTICE SA",
+    "address": "JUD. IAŞI, MUN. IAŞI, STR. VALEA LUPULUI, NR.1",
+    "registrationNumber": "J1991000285223",
+    "phone": "0232209000",
+    "fax": "0232209633",
+    "postalCode": "",
+    "caenCode": "2110",
+    "iban": "",
+    "registrationState": "INREGISTRAT din data 15.02.1991",
+    "registrationDate": "1992-11-28",
+    "fiscalAuthority": "Direcţia Generală de Administrare a Marilor Contribuabili",
+    "ownershipForm": "PROPR.MIXTA-DE STAT SI PRIVAT AUTOHTON",
+    "organizationForm": "PERSOANA JURIDICA",
+    "legalForm": "SOCIETATE COMERCIALĂ PE ACŢIUNI",
+    "vatRegistered": true,
+    "vatPeriods": [],
+    "cashBasisVat": false,
+    "cashBasisVatStart": null,
+    "cashBasisVatEnd": null,
+    "inactive": false,
+    "inactiveSince": null,
+    "reactivatedSince": null,
+    "splitVat": false,
+    "eFacturaRegistered": false,
+    "headquartersAddress": {
+      "street": "Str. VALEA LUPULUI",
+      "number": "1",
+      "locality": "Mun. Iaşi",
+      "county": "IAŞI",
+      "country": "",
+      "postalCode": ""
+    },
+    "fiscalAddress": {
+      "street": "",
+      "number": "",
+      "locality": "",
+      "county": "",
+      "country": "",
+      "postalCode": ""
+    },
+    "administrators": [],
+    "authorizedCaenCodes": ["2110"],
+    "onrcStatus": 0,
+    "onrcStatusLabel": "Funcțiune"
+  },
+  "peviitor": {
+    "id": "1973096",
+    "company": "ANTIBIOTICE SA",
+    "brand": "Antibiotice",
+    "status": "activ",
+    "website": ["https://www.antibiotice.ro"],
+    "career": ["https://www.antibiotice.ro/cariere/open-position/"],
+    "lastScraped": "2026-09-08"
+  },
+  "summary": {
+    "company": "ANTIBIOTICE SA",
+    "cif": "1973096",
+    "active": true,
+    "inactiveSince": null,
+    "reactivatedSince": null,
+    "address": "JUD. IAŞI, MUN. IAŞI, STR. VALEA LUPULUI, NR.1",
+    "registrationNumber": "J1991000285223",
+    "caenCode": "2110",
+    "vatRegistered": true,
+    "eFacturaRegistered": false
+  }
+}

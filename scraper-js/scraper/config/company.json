@@ -1,0 +1,10 @@
+{
+  "id": "1973096",
+  "company": "ANTIBIOTICE SA",
+  "brand": "Antibiotice",
+  "status": "activ",
+  "location": ["Iași"],
+  "website": ["https://www.antibiotice.ro"],
+  "career": ["https://www.antibiotice.ro/cariere/open-position/"],
+  "scraperFile": "https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml"
+}

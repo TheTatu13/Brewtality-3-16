@@ -1,0 +1,24 @@
+# Node
+**/node_modules/
+**/test-report.html
+**/test-results*.html
+**/coverage/
+**/scraper/jobs.json
+**/jobs_existing.json
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+**/.pytest_cache/
+**/.venv/
+**/.coverage
+
+# Local
+**/tmp/
+**/.env
+**/.env.local
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
