@@ -21,7 +21,7 @@ describe('index.js Component Tests', () => {
 
   describe('parseDeadline', () => {
     it('converts a DD.MM.YYYY deadline to an end-of-day ISO string', () => {
-      expect(index.parseDeadline('Data limita pentru aplicarea la acest job este: 30.09.2026'))
+      expect(index.parseDeadline('Apply by: 30.09.2026'))
         .toBe('2026-09-30T23:59:59.000Z');
     });
 
@@ -32,24 +32,26 @@ describe('index.js Component Tests', () => {
 
   describe('matchSitemapUrl', () => {
     const sitemap = [
-      { url: 'https://www.antibiotice.ro/joburi/specialist-marketing/', slug: 'specialist-marketing' },
-      { url: 'https://www.antibiotice.ro/joburi/reprezentat-vanzari-biovet/', slug: 'reprezentat-vanzari-biovet' },
-      { url: 'https://www.antibiotice.ro/joburi/operator-exploatare-si-mentenanta-2/', slug: 'operator-exploatare-si-mentenanta-2' }
+      { url: 'https://jobs.example.com/careers/senior-widget-engineer/', slug: 'senior-widget-engineer' },
+      { url: 'https://jobs.example.com/careers/field-sales-representative/', slug: 'field-sales-representative' },
+      // real-world drift: a "-2" disambiguation suffix, and a "reprezentnt" typo
+      { url: 'https://jobs.example.com/careers/night-shift-operator-2/', slug: 'night-shift-operator-2' },
+      { url: 'https://jobs.example.com/careers/reprezentnt-medical/', slug: 'reprezentnt-medical' }
     ];
 
     it('matches exact slugs', () => {
-      expect(index.matchSitemapUrl('Specialist Marketing', sitemap))
-        .toBe('https://www.antibiotice.ro/joburi/specialist-marketing/');
+      expect(index.matchSitemapUrl('Senior Widget Engineer', sitemap))
+        .toBe('https://jobs.example.com/careers/senior-widget-engineer/');
     });
 
     it('tolerates a trailing -2 disambiguation suffix', () => {
-      expect(index.matchSitemapUrl('Operator exploatare și mentenanță', sitemap))
-        .toBe('https://www.antibiotice.ro/joburi/operator-exploatare-si-mentenanta-2/');
+      expect(index.matchSitemapUrl('Night Shift Operator', sitemap))
+        .toBe('https://jobs.example.com/careers/night-shift-operator-2/');
     });
 
     it('tolerates a small typo in the sitemap slug (edit distance <= 2)', () => {
-      expect(index.matchSitemapUrl('Reprezentant vânzări Biovet', sitemap))
-        .toBe('https://www.antibiotice.ro/joburi/reprezentat-vanzari-biovet/');
+      expect(index.matchSitemapUrl('Reprezentant Medical', sitemap))
+        .toBe('https://jobs.example.com/careers/reprezentnt-medical/');
     });
 
     it('returns null when nothing is close enough', () => {
@@ -58,37 +60,53 @@ describe('index.js Component Tests', () => {
   });
 
   describe('parseListing', () => {
+    // A generic example selector cascade — the template's config/scraper.json
+    // ships {{PLACEHOLDER}} selectors, so tests pass their own explicitly.
+    const SEL = {
+      jobArticle: ['.job', "[class*='job']", '.vacancy, .position, .listing-item'],
+      jobTitle: ['.job__title', 'h1, h2, h3, h4', "[itemprop='title'], [aria-label]", 'a'],
+      jobMeta: ['.job__meta', "p, .meta, [class*='deadline']"]
+    };
+
     const html = `
       <main>
-        <article class="job-item">
-          <div class="header-job"><h3>Manager Medical &#8211; Produse veterinare </h3>
-          <span class="readmorejob">Vezi detalii</span></div>
-          <p>Data limita pentru aplicarea la acest job este: 30.09.2026</p>
-          <div class="bullets"><p>descriere</p></div>
-        </article>
-        <article class="job-item">
-          <div class="header-job"><h3>Servant pompier </h3>
-          <span class="readmorejob">Vezi detalii</span></div>
-          <p>fără termen anuntat</p>
-          <div class="bullets"><p>descriere</p></div>
-        </article>
+        <div class="job">
+          <h3 class="job__title">Senior Widget Engineer &#8211; Platform </h3>
+          <span class="more">Read more</span>
+          <p class="job__meta">Apply by: 30.09.2026</p>
+          <div class="body"><p>description</p></div>
+        </div>
+        <div class="job">
+          <h3 class="job__title">Night Shift Operator </h3>
+          <span class="more">Read more</span>
+          <p class="job__meta">no deadline announced</p>
+          <div class="body"><p>description</p></div>
+        </div>
       </main>`;
 
     it('extracts one item per article with a decoded, trimmed title', () => {
-      const items = index.parseListing(html);
+      const items = index.parseListing(html, SEL);
       expect(items).toHaveLength(2);
-      expect(items[0].title).toBe('Manager Medical – Produse veterinare');
-      expect(items[1].title).toBe('Servant pompier');
+      expect(items[0].title).toBe('Senior Widget Engineer – Platform');
+      expect(items[1].title).toBe('Night Shift Operator');
     });
 
     it('carries the deadline when present, undefined otherwise', () => {
-      const items = index.parseListing(html);
+      const items = index.parseListing(html, SEL);
       expect(items[0].expirationdate).toBe('2026-09-30T23:59:59.000Z');
       expect(items[1].expirationdate).toBeUndefined();
     });
 
     it('returns an empty array when the selector matches nothing', () => {
-      expect(index.parseListing('<div>no jobs here</div>')).toEqual([]);
+      expect(index.parseListing('<div>no jobs here</div>', SEL)).toEqual([]);
+    });
+
+    it('skips an unconfigured {{PLACEHOLDER}} primary selector and uses a fallback', () => {
+      // the template ships {{SELECTOR_JOB_ARTICLE}} — invalid CSS, must not crash;
+      // the generic "[class*='job']" fallback in the shipped config still matches.
+      const items = index.parseListing(html); // default = config/scraper.json
+      expect(Array.isArray(items)).toBe(true);
+      expect(items.map(i => i.title)).toContain('Senior Widget Engineer – Platform');
     });
 
     describe('self-healing when the primary markup breaks', () => {
@@ -100,55 +118,54 @@ describe('index.js Component Tests', () => {
       afterEach(() => { logSpy.mockRestore(); warnSpy.mockRestore(); });
 
       it('recovers via a fallback article selector when the class is renamed', () => {
-        // site swapped `article.job-item` -> `article.job-card` (still class*="job-")
+        // site swapped `.job` -> `.job-card` (still class*="job")
         const html = `
-          <article class="job-card">
-            <div class="header-job"><h3>Analist Calitate</h3></div>
-            <p>Data limita pentru aplicarea la acest job este: 15.11.2026</p>
-          </article>`;
-        const items = index.parseListing(html);
+          <div class="job-card">
+            <h3 class="job__title">QA Analyst</h3>
+            <p class="job__meta">Apply by: 15.11.2026</p>
+          </div>`;
+        const items = index.parseListing(html, SEL);
         expect(items).toHaveLength(1);
-        expect(items[0].title).toBe('Analist Calitate');
+        expect(items[0].title).toBe('QA Analyst');
         expect(items[0].expirationdate).toBe('2026-11-15T23:59:59.000Z');
       });
 
-      it('recovers the title via a fallback heading selector when .header-job h3 is gone', () => {
-        // site moved the title out of `.header-job` into a bare <h2>
+      it('recovers the title via a fallback heading selector when .job__title is gone', () => {
         const html = `
-          <article class="job-item">
-            <header><h2>Operator Productie</h2></header>
-            <div>Data limita pentru aplicarea la acest job este: 01.12.2026</div>
-          </article>`;
-        const items = index.parseListing(html);
+          <div class="job">
+            <header><h2>Production Operator</h2></header>
+            <div>Apply by: 01.12.2026</div>
+          </div>`;
+        const items = index.parseListing(html, SEL);
         expect(items).toHaveLength(1);
-        expect(items[0].title).toBe('Operator Productie');
+        expect(items[0].title).toBe('Production Operator');
         expect(items[0].expirationdate).toBe('2026-12-01T23:59:59.000Z');
       });
 
-      it('recovers the title via the /joburi/ permalink anchor when all headings are gone', () => {
+      it('recovers the title via the anchor text when all headings are gone', () => {
         const html = `
-          <article class="job-item">
-            <a href="https://www.antibiotice.ro/joburi/tehnician-mentenanta-electric/">Tehnician Mentenanta Electric</a>
-            <p>fără termen</p>
-          </article>`;
-        const items = index.parseListing(html);
+          <div class="job">
+            <a href="https://jobs.example.com/careers/electrical-maintenance-technician/">Electrical Maintenance Technician</a>
+            <p class="job__meta">no deadline</p>
+          </div>`;
+        const items = index.parseListing(html, SEL);
         expect(items).toHaveLength(1);
-        expect(items[0].title).toBe('Tehnician Mentenanta Electric');
+        expect(items[0].title).toBe('Electrical Maintenance Technician');
       });
 
       it('falls back to JSON-LD JobPosting when there is no article markup at all', () => {
         const html = `
           <html><head>
           <script type="application/ld+json">
-          {"@type":"JobPosting","title":"Reprezentant Medical","validThrough":"2026-10-31"}
+          {"@type":"JobPosting","title":"Field Sales Representative","validThrough":"2026-10-31"}
           </script>
           <script type="application/ld+json">
-          {"@type":"JobPosting","title":"Product Manager Biovet"}
+          {"@type":"JobPosting","title":"Product Manager"}
           </script>
           </head><body><div>markup the scraper doesn't know</div></body></html>`;
-        const items = index.parseListing(html);
-        expect(items.map(i => i.title).sort()).toEqual(['Product Manager Biovet', 'Reprezentant Medical']);
-        expect(items.find(i => i.title === 'Reprezentant Medical').expirationdate)
+        const items = index.parseListing(html, SEL);
+        expect(items.map(i => i.title).sort()).toEqual(['Field Sales Representative', 'Product Manager']);
+        expect(items.find(i => i.title === 'Field Sales Representative').expirationdate)
           .toBe('2026-10-31T00:00:00.000Z');
       });
 
@@ -156,17 +173,17 @@ describe('index.js Component Tests', () => {
         // container class unknown, but the <article> tag and an <h3> survive
         const html = `
           <section>
-            <article data-role="posting"><h3>Servant Pompier</h3>
-              <em>termen: 20.10.2026</em></article>
+            <article data-role="posting"><h3>Duty Firefighter</h3>
+              <em>deadline: 20.10.2026</em></article>
           </section>`;
-        const items = index.parseListing(html);
+        const items = index.parseListing(html, SEL);
         expect(items).toHaveLength(1);
-        expect(items[0].title).toBe('Servant Pompier');
+        expect(items[0].title).toBe('Duty Firefighter');
         expect(items[0].expirationdate).toBe('2026-10-20T23:59:59.000Z');
       });
 
       it('returns [] and does not throw when the page is unrecognisable (canary feeds off this)', () => {
-        const items = index.parseListing('<body><nav>Home</nav><footer>©</footer></body>');
+        const items = index.parseListing('<body><nav>Home</nav><footer>©</footer></body>', SEL);
         expect(items).toEqual([]);
       });
     });
@@ -195,14 +212,14 @@ describe('index.js Component Tests', () => {
 
     it('should keep company uppercase', () => {
       const payload = {
-        source: 'antibiotice.ro,anofm.ro',
-        company: 'antibiotice sa',
-        cif: '1973096',
-        jobs: [{ url: 'https://test.com/1', title: 'Job 1', company: 'antibiotice sa', cif: '1973096' }]
+        source: 'careers.example.com,anofm.ro',
+        company: 'example company srl',
+        cif: '12345678',
+        jobs: [{ url: 'https://test.com/1', title: 'Job 1', company: 'example company srl', cif: '12345678' }]
       };
 
       const result = index.transformJobsForSOLR(payload);
-      expect(result.company).toBe('ANTIBIOTICE SA');
+      expect(result.company).toBe('EXAMPLE COMPANY SRL');
     });
 
     it('should normalize workmode values', () => {
@@ -237,19 +254,19 @@ describe('index.js Component Tests', () => {
   describe('mapToJobModel', () => {
     it('should map a raw job to the job model format', () => {
       const rawJob = {
-        url: 'https://www.antibiotice.ro/joburi/specialist-marketing/',
+        url: 'https://jobs.example.com/careers/widget-engineer/',
         title: 'Specialist Marketing',
         location: ['Iași'],
         workmode: 'on-site',
         expirationdate: '2026-09-30T23:59:59.000Z'
       };
 
-      const result = index.mapToJobModel(rawJob, '1973096', 'ANTIBIOTICE SA');
+      const result = index.mapToJobModel(rawJob, '12345678', 'EXAMPLE COMPANY SRL');
 
       expect(result.url).toBe(rawJob.url);
       expect(result.title).toBe(rawJob.title);
-      expect(result.company).toBe('ANTIBIOTICE SA');
-      expect(result.cif).toBe('1973096');
+      expect(result.company).toBe('EXAMPLE COMPANY SRL');
+      expect(result.cif).toBe('12345678');
       expect(result.location).toEqual(['Iași']);
       expect(result.workmode).toBe('on-site');
       expect(result.expirationdate).toBe('2026-09-30T23:59:59.000Z');
@@ -258,7 +275,7 @@ describe('index.js Component Tests', () => {
     });
 
     it('should remove undefined fields', () => {
-      const result = index.mapToJobModel({ url: 'https://test.com/1', title: 'Job 1' }, '1973096');
+      const result = index.mapToJobModel({ url: 'https://test.com/1', title: 'Job 1' }, '12345678');
       expect(result.location).toBeUndefined();
       expect(result.tags).toBeUndefined();
       expect(result.workmode).toBeUndefined();

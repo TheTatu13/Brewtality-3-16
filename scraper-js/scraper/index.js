@@ -15,6 +15,20 @@ const TIMEOUT = scraperConfig.requestTimeoutMs;
 const PAGE_DELAY = scraperConfig.pageDelayMs;
 const OWN_URL_PREFIX = scraperConfig.ownJobUrlPrefix;
 
+// The path segment that marks an individual job permalink, derived from
+// `ownJobUrlPrefix` (e.g. "https://site.com/jobs/" -> "/jobs/"). Used to pick
+// job URLs out of the sitemap. Falls back to matching any prefixed URL.
+const JOB_PATH = (() => {
+  try { return new URL(OWN_URL_PREFIX).pathname.replace(/\/+$/, "") + "/"; }
+  catch { return "/"; }
+})();
+
+// A short label for where a scraped job came from (the careers host).
+const CAREERS_SOURCE = (() => {
+  try { return new URL(scraperConfig.sources.listing).host; }
+  catch { return "careers-site"; }
+})();
+
 let COMPANY_NAME = null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -22,7 +36,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const isOwnJob = (url) => typeof url === "string" && url.startsWith(OWN_URL_PREFIX);
 
 // ============================================================================
-// Slug helpers — join listing titles to canonical /joburi/ permalinks
+// Slug helpers — join listing titles to canonical job permalinks
 // ============================================================================
 
 // Romanian diacritics have no NFD decomposition for ș/ț, so map them explicitly.
@@ -54,9 +68,9 @@ function levenshtein(a, b) {
   return d[m][n];
 }
 
-// Pick the sitemap URL whose slug best matches a listing title. The site's
-// sitemap has real-world drift (`reprezentat-` typo, `-2` disambiguation
-// suffix), so match exact → prefix → small edit distance, else return null.
+// Pick the sitemap URL whose slug best matches a listing title. Sitemaps drift
+// in the real world (typos, a "-2" disambiguation suffix), so match
+// exact → bounded prefix → small edit distance, else return null.
 function matchSitemapUrl(title, sitemapEntries) {
   const slug = slugify(title);
   const exact = sitemapEntries.find((e) => e.slug === slug);
@@ -101,12 +115,14 @@ function parseDeadline(text) {
 }
 
 // ============================================================================
-// Antibiotice careers — official source
+// Careers listing — the company's own site (config `sources`)
 // ============================================================================
 
 async function fetchSitemapJobUrls() {
+  const sitemapUrl = scraperConfig.sources.sitemap;
+  if (!sitemapUrl || sitemapUrl.startsWith("{{")) return []; // not configured
   try {
-    const res = await fetch(scraperConfig.sources.sitemap, {
+    const res = await fetch(sitemapUrl, {
       timeout: TIMEOUT,
       headers: { "User-Agent": userAgent }
     });
@@ -116,10 +132,11 @@ async function fetchSitemapJobUrls() {
     }
     const xml = await res.text();
     const entries = [];
+    // one path segment past JOB_PATH, e.g. /jobs/<slug>/ but not the /jobs/ index
+    const jobUrlRe = new RegExp(`${JOB_PATH.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[^/]+/?$`);
     for (const m of xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/g)) {
       const url = m[1].trim();
-      // Skip the /joburi/ archive index — keep only individual postings.
-      if (!/\/joburi\/[^/]+\/?$/.test(url)) continue;
+      if (!jobUrlRe.test(url)) continue;
       const slug = url.replace(/\/$/, "").split("/").pop();
       entries.push({ url, slug });
     }
@@ -149,22 +166,28 @@ function cleanTitle(raw) {
 
 /**
  * Parse the open-positions listing into { title, expirationdate } items,
- * self-healing through the selector cascade in scraper/config/scraper.json:
+ * self-healing through the selector cascade (default: scraper/config/scraper.json;
+ * pass `selectors` explicitly in tests):
  *
  *   article blocks:  CSS list  ->  JSON-LD JobPosting  ->  regex <article>
  *   title:           CSS list  ->  regex <hN>  ->  regex <a>
  *   deadline:        CSS list  ->  date regex over the whole block text
+ *
+ * @param {string} html
+ * @param {{jobArticle:any, jobTitle:any, jobMeta:any}} [selectors]
  */
-function parseListing(html) {
-  const { jobTitle, jobMeta, jobArticle } = scraperConfig.selectors;
+function parseListing(html, selectors = scraperConfig.selectors) {
+  const { jobTitle, jobMeta, jobArticle } = selectors;
   const { mode, scopes, jsonLd } = locateArticles(html, jobArticle);
   const items = [];
   const strategies = new Set();
+  const seenTitles = new Set(); // a broad fallback selector can match nested blocks
 
   if (mode === "jsonld") {
     for (const posting of jsonLd) {
       const title = cleanTitle(posting.title);
-      if (!title) continue;
+      if (!title || seenTitles.has(title.toLowerCase())) continue;
+      seenTitles.add(title.toLowerCase());
       strategies.add("jsonld");
       items.push({ title, expirationdate: parseDeadline(posting.validThrough) });
     }
@@ -183,7 +206,8 @@ function parseListing(html) {
     ], { silent: true });
 
     const cleaned = cleanTitle(title);
-    if (!cleaned) continue;
+    if (!cleaned || seenTitles.has(cleaned.toLowerCase())) continue;
+    seenTitles.add(cleaned.toLowerCase());
     if (strategy) strategies.add(strategy);
 
     // DEADLINE — meta selectors, then a bare date regex over the whole block.
@@ -200,7 +224,7 @@ function parseListing(html) {
   return items;
 }
 
-// Light location hint from the title; transform step still validates against
+// Light location hint from the title; the transform step still validates against
 // the Romanian-city allowlist and falls back to "România".
 const RO_CITY_HINTS = [
   "Iași", "Iasi", "București", "Bucuresti", "Cluj", "Timișoara", "Timisoara",
@@ -214,8 +238,8 @@ function locationFromTitle(title) {
   return hit ? [hit] : scraperConfig.defaultLocation;
 }
 
-async function scrapeAntibioticeCareers() {
-  console.log("Scraping antibiotice.ro/cariere/open-position/ ...");
+async function scrapeCareers() {
+  console.log(`Scraping ${scraperConfig.sources.listing} ...`);
   const jobs = [];
 
   const sitemapEntries = await fetchSitemapJobUrls();
@@ -240,7 +264,7 @@ async function scrapeAntibioticeCareers() {
         location: locationFromTitle(item.title),
         workmode: scraperConfig.defaultWorkmode,
         expirationdate: item.expirationdate,
-        source: "antibiotice.ro"
+        source: CAREERS_SOURCE
       });
     }
   } else if (sitemapEntries.length > 0) {
@@ -256,12 +280,12 @@ async function scrapeAntibioticeCareers() {
         title,
         location: scraperConfig.defaultLocation,
         workmode: scraperConfig.defaultWorkmode,
-        source: "antibiotice.ro"
+        source: CAREERS_SOURCE
       });
     }
   }
 
-  console.log(`  Found ${jobs.length} jobs on antibiotice.ro`);
+  console.log(`  Found ${jobs.length} jobs on ${CAREERS_SOURCE}`);
   return jobs;
 }
 
@@ -394,9 +418,9 @@ async function main() {
     const existingCount = existingResult.numFound;
     // Every URL under this CIF (used to classify a scraped job as new vs. update).
     const allExistingUrls = new Set(existingResult.docs.map(d => d.url));
-    // Only URLs this scraper owns — the same CIF also carries jobs published by
-    // other peviitor scrapers (inviitor.ro, aggregators). We never touch those,
-    // and only these can be reported as "gone from the site".
+    // Only URLs this scraper owns — the same CIF may also carry jobs published
+    // by other peviitor scrapers / aggregators. We never touch those, and only
+    // these can be reported as "gone from the site".
     const ownExistingUrls = new Set(
       existingResult.docs.map(d => d.url).filter(isOwnJob)
     );
@@ -429,13 +453,13 @@ async function main() {
         console.log(`Note: Could not upsert company: ${err.message}`);
       }
     } else {
-      console.log("manageCompany=false — leaving company core untouched (owned by inviitor-ro-nodejs-scraper)");
+      console.log("manageCompany=false — leaving company core untouched (owned by another scraper on this CIF)");
     }
 
     console.log("=== Step 3: Scrape jobs ===");
     const rawJobs = [];
 
-    const careerJobs = await scrapeAntibioticeCareers();
+    const careerJobs = await scrapeCareers();
     rawJobs.push(...careerJobs);
 
     const anofmJobs = await searchANOFM(cif);
@@ -446,7 +470,7 @@ async function main() {
     }
     console.log(`Jobs from ANOFM: ${anofmJobs.length}`);
 
-    console.log(`Total jobs scraped (antibiotice.ro + ANOFM): ${rawJobs.length}`);
+    console.log(`Total jobs scraped (careers site + ANOFM): ${rawJobs.length}`);
 
     // Canary — abort before writing anything if every source came back empty.
     assertScrapeYieldedJobs(rawJobs);
@@ -459,7 +483,7 @@ async function main() {
     const jobs = validJobs.map(job => mapToJobModel(job, cif));
 
     const payload = {
-      source: "antibiotice.ro,anofm.ro",
+      source: `${CAREERS_SOURCE},anofm.ro`,
       scrapedAt: new Date().toISOString(),
       company: COMPANY_NAME,
       cif: cif,
@@ -506,10 +530,10 @@ async function main() {
       console.log("No jobs scraped — skipping upsert (API rejects an empty array)");
     }
 
-    // Step 4.5 — stale-job deletion. Disabled by default: the CIF is shared with
-    // inviitor-ro-nodejs-scraper, and even scoped to our own URLs this would
-    // fight that scraper on any transient fetch failure. The nightly
-    // validate-antibiotice-jobs.js job (scoped to our URLs) handles real 404s.
+    // Step 4.5 — stale-job deletion. Disabled by default: if the CIF is shared
+    // with another scraper, deleting (even scoped to our own URLs) would fight
+    // that scraper on any transient fetch failure. The nightly validate-jobs.js
+    // job (scoped to our URLs) handles real 404s instead.
     if (scraperConfig.staleJobDeletion) {
       const scrapedUrls = new Set(transformedPayload.jobs.map(job => job.url));
       const staleUrls = [...ownExistingUrls].filter(url => !scrapedUrls.has(url));
@@ -527,7 +551,7 @@ async function main() {
         console.log("\nNo stale jobs to delete");
       }
     } else {
-      console.log("\nStep 4.5 skipped — staleJobDeletion=false (coexistence with inviitor-ro-nodejs-scraper)");
+      console.log("\nStep 4.5 skipped — staleJobDeletion=false (coexistence with other scrapers on this CIF)");
     }
 
     console.log("\n=== Step 5: Summary ===");
@@ -546,7 +570,7 @@ async function main() {
 
     console.log(`\n=== SUMMARY ===`);
     console.log(`Jobs in SOLR before scrape:  ${existingCount} (${ownExistingUrls.size} ours)`);
-    console.log(`Scraped this run:             ${scrapedCount} (antibiotice.ro + ANOFM)`);
+    console.log(`Scraped this run:             ${scrapedCount} (careers site + ANOFM)`);
     console.log(`  new (not in SOLR before):  ${addedUrls.length}`);
     if (addedUrls.length) console.log(preview(addedUrls));
     console.log(`  updated (already in SOLR): ${updatedUrls.length}`);
@@ -564,7 +588,7 @@ async function main() {
   }
 }
 
-export { mapToJobModel, transformJobsForSOLR, scrapeAntibioticeCareers, fetchSitemapJobUrls, parseListing, slugify, matchSitemapUrl, parseDeadline };
+export { mapToJobModel, transformJobsForSOLR, scrapeCareers, fetchSitemapJobUrls, parseListing, slugify, matchSitemapUrl, parseDeadline };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();

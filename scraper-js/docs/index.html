@@ -248,19 +248,19 @@
       <img src="https://peviitor.ro/assets/logo-DV2JQkir.svg" alt="peviitor" class="logo-img">
     </a>
     <h1 data-i18n="pageTitle">Locuri de muncă</h1>
-    <p data-i18n="subtitle">Scraper automat pentru locurile de muncă Antibiotice SA</p>
+    <p data-i18n="subtitle">Scraper automat pentru locurile de muncă {{COMPANY_NAME}}</p>
 
     <div style="margin: 15px 0; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
-      <a href="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml" target="_blank">
-        <img src="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml/badge.svg" alt="Scraper Status">
+      <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/job-seeker-ro-spider.yml" target="_blank">
+        <img src="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/job-seeker-ro-spider.yml/badge.svg" alt="Scraper Status">
       </a>
-      <a href="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/automation-testing.yml" target="_blank">
-        <img src="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/automation-testing.yml/badge.svg" alt="Tests Status">
+      <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/automation-testing.yml" target="_blank">
+        <img src="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/automation-testing.yml/badge.svg" alt="Tests Status">
       </a>
-      <a href="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/blob/main/CHANGELOG.md" target="_blank">
-        <img src="https://img.shields.io/github/package-json/v/TheTatu13/antibiotice-sa-nodejs-scraper?label=version&color=blue" alt="Version">
+      <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/blob/main/CHANGELOG.md" target="_blank">
+        <img src="https://img.shields.io/github/package-json/v/{{GITHUB_OWNER}}/{{GITHUB_REPO}}?label=version&color=blue" alt="Version">
       </a>
-      <a href="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/blob/main/LICENSE" target="_blank">
+      <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/blob/main/LICENSE" target="_blank">
         <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
       </a>
       <a href="https://ecma-international.org/" target="_blank">
@@ -300,7 +300,7 @@
     <div class="card-header" data-i18n="aboutTitle">Despre acest scraper</div>
     <div class="card-body">
       <ul class="features-list" data-i18n="featuresList">
-        <li data-i18n="f1">Extrage job-uri de pe antibiotice.ro/cariere + ANOFM</li>
+        <li data-i18n="f1">Extrage job-uri de pe site-ul de carieră al companiei + ANOFM</li>
         <li data-i18n="f2">Parsează HTML server-rendered cu Cheerio (fără browser)</li>
         <li data-i18n="f3">Validează compania via ANAF</li>
         <li data-i18n="f4">Verifică și elimină job-uri expirate</li>
@@ -317,7 +317,7 @@
   </div>
 
   <div class="btn-wrapper" style="display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap;">
-    <a class="btn" href="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml" target="_blank">
+    <a class="btn" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/job-seeker-ro-spider.yml" target="_blank">
       <span>&#9654;</span> <span data-i18n="runBtn">Rulează Scraper</span>
     </a>
     <a class="btn" href="test-results/" style="background:#7d6b5a;">
@@ -337,8 +337,8 @@
   </div>
 
   <footer>
-    <a href="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper" target="_blank">GitHub</a> &middot;
-    <a href="https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/blob/main/docs/README.md" target="_blank" data-i18n="docs">Documentație</a> &middot;
+    <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}" target="_blank">GitHub</a> &middot;
+    <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/blob/main/docs/README.md" target="_blank" data-i18n="docs">Documentație</a> &middot;
     <a href="https://peviitor.ro/" target="_blank">peviitor.ro</a>
   </footer>
 
@@ -346,13 +346,13 @@
 
 <script>
 // Loaded from docs/company.json (regenerated on every scrape)
-let COMPANY = "ANTIBIOTICE SA";
-let COMPANY_CIF = "1973096";
+let COMPANY = "{{COMPANY_NAME}}";
+let COMPANY_CIF = "{{CIF}}";
 // The peviitor API keys jobs by CIF, and the same CIF also carries jobs
 // published by other scrapers (eJobs / BestJobs imports). This page shows only
 // the jobs THIS scraper manages — the ones on the company's own careers site —
-// so the count matches antibiotice.ro exactly.
-let OWN_PREFIX = "https://www.antibiotice.ro/joburi/";
+// so the count matches the company site exactly.
+let OWN_PREFIX = "{{JOB_URL_PREFIX}}";
 
 // Jobs are stored with a zero-padded 8-digit CIF (Peviitor API requirement),
 // while company.json keeps the real CIF. Compare with leading zeros stripped.
@@ -373,12 +373,12 @@ async function loadCompanyConfig() {
 
 const i18n = {
   en: {
-    pageTitle: "Antibiotice Jobs — peviitor.ro",
-    subtitle: "Automated scraper for Antibiotice SA jobs",
+    pageTitle: "{{COMPANY_NAME}} Jobs — peviitor.ro",
+    subtitle: "Automated scraper for {{COMPANY_NAME}} jobs",
     jobsLabel: "Jobs",
     verifiedLabel: "Verified",
     aboutTitle: "About this scraper",
-    f1: "Extracts jobs from antibiotice.ro/careers + ANOFM",
+    f1: "Extracts jobs from the company careers site + ANOFM",
     f2: "Parses server-rendered HTML with Cheerio (no browser)",
     f3: "Validates company via ANAF",
     f4: "Checks and removes expired jobs",
@@ -393,11 +393,11 @@ const i18n = {
   },
   ro: {
     pageTitle: "Locuri de muncă — peviitor.ro",
-    subtitle: "Scraper automat pentru locurile de muncă Antibiotice SA",
+    subtitle: "Scraper automat pentru locurile de muncă {{COMPANY_NAME}}",
     jobsLabel: "Locuri de muncă",
     verifiedLabel: "Verificate",
     aboutTitle: "Despre acest scraper",
-    f1: "Extrage locuri de muncă de pe antibiotice.ro/cariere + ANOFM",
+    f1: "Extrage locuri de muncă de pe site-ul de carieră al companiei + ANOFM",
     f2: "Parsează HTML server-rendered cu Cheerio (fără browser)",
     f3: "Validează compania via ANAF",
     f4: "Verifică și elimină locuri de muncă expirate",

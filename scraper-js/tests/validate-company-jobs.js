@@ -1,10 +1,10 @@
 /**
- * Antibiotice Job URL Validator
+ * Company Job URL Validator (CI)
  *
  * Validation modes:
  *   --head      HEAD requests only (fast, default)
  *   --content   GET + body scan (catches HTML soft-404s) — recommended deep mode;
- *               antibiotice.ro is server-rendered, so no browser is needed
+ *               most careers sites are server-rendered, so no browser is needed
  *   --browser   Playwright headless Chromium; falls back to --content if Playwright
  *               is not installed (it is not a dependency of this repo)
  *

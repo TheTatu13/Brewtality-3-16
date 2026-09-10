@@ -9,47 +9,52 @@ def test_slugify_strips_diacritics():
 
 
 def test_parse_deadline():
-    assert parse_deadline("Data limita: 30.09.2026").startswith("2026-09-30T23:59:59")
+    assert parse_deadline("Apply by: 30.09.2026").startswith("2026-09-30T23:59:59")
     assert parse_deadline("2026-10-31").startswith("2026-10-31T00:00:00")
-    assert parse_deadline("fără termen") is None
+    assert parse_deadline("no deadline") is None
     assert parse_deadline(None) is None
 
 
 class TestParseListingHappyPath:
-    def test_extracts_one_item_per_article(self, fixture_html):
-        items = parse_listing(fixture_html("listing_ok.html"))
-        assert [i["title"] for i in items] == ["Manager Medical – Produse veterinare", "Servant pompier"]
+    def test_extracts_one_item_per_article(self, fixture_html, selectors):
+        items = parse_listing(fixture_html("listing_ok.html"), selectors)
+        assert [i["title"] for i in items] == ["Senior Widget Engineer – Platform", "Night Shift Operator"]
 
-    def test_carries_deadline_when_present(self, fixture_html):
-        items = parse_listing(fixture_html("listing_ok.html"))
+    def test_carries_deadline_when_present(self, fixture_html, selectors):
+        items = parse_listing(fixture_html("listing_ok.html"), selectors)
         assert items[0]["expirationdate"].startswith("2026-09-30")
         assert items[1]["expirationdate"] is None
 
-    def test_empty_when_nothing_matches(self):
-        assert parse_listing("<div>no jobs here</div>") == []
+    def test_empty_when_nothing_matches(self, selectors):
+        assert parse_listing("<div>no jobs here</div>", selectors) == []
+
+    def test_placeholder_config_does_not_crash(self):
+        # default config ships {{SELECTOR_JOB_ARTICLE}} — invalid CSS, must be skipped
+        result = parse_listing("<main><div class='job'><h3 class='job__title'>X</h3></div></main>")
+        assert isinstance(result, list)
 
 
 class TestParseListingSelfHealing:
-    def test_recovers_via_fallback_class_and_fallback_heading(self, fixture_html, caplog):
+    def test_recovers_via_fallback_class_and_fallback_heading(self, fixture_html, selectors, caplog):
         with caplog.at_level(logging.INFO):
-            items = parse_listing(fixture_html("listing_renamed_class.html"))
+            items = parse_listing(fixture_html("listing_renamed_class.html"), selectors)
         titles = sorted(i["title"] for i in items)
-        assert titles == ["Analist Calitate", "Tehnician Mentenanta Electric"]
-        analist = next(i for i in items if i["title"] == "Analist Calitate")
-        assert analist["expirationdate"].startswith("2026-11-15")
+        assert titles == ["Electrical Maintenance Technician", "QA Analyst"]
+        qa = next(i for i in items if i["title"] == "QA Analyst")
+        assert qa["expirationdate"].startswith("2026-11-15")
 
-    def test_falls_back_to_json_ld(self, fixture_html):
-        items = parse_listing(fixture_html("listing_jsonld_only.html"))
-        assert sorted(i["title"] for i in items) == ["Product Manager Biovet", "Reprezentant Medical"]
-        rep = next(i for i in items if i["title"] == "Reprezentant Medical")
+    def test_falls_back_to_json_ld(self, fixture_html, selectors):
+        items = parse_listing(fixture_html("listing_jsonld_only.html"), selectors)
+        assert sorted(i["title"] for i in items) == ["Field Sales Representative", "Product Manager"]
+        rep = next(i for i in items if i["title"] == "Field Sales Representative")
         assert rep["expirationdate"].startswith("2026-10-31")
 
-    def test_falls_back_to_regex_article_slicing(self, fixture_html):
-        items = parse_listing(fixture_html("listing_regex_article.html"))
+    def test_falls_back_to_regex_article_slicing(self, fixture_html, selectors):
+        items = parse_listing(fixture_html("listing_regex_article.html"), selectors)
         assert len(items) == 1
-        assert items[0]["title"] == "Servant Pompier"
+        assert items[0]["title"] == "Duty Firefighter"
         assert items[0]["expirationdate"].startswith("2026-10-20")
 
-    def test_unrecognisable_page_returns_empty_without_raising(self, fixture_html):
+    def test_unrecognisable_page_returns_empty_without_raising(self, fixture_html, selectors):
         # feeds the canary in main.run()
-        assert parse_listing(fixture_html("listing_unrecognisable.html")) == []
+        assert parse_listing(fixture_html("listing_unrecognisable.html"), selectors) == []

@@ -10,8 +10,8 @@ from scraper.validate import (
 )
 
 GOOD = {
-    "url": "https://www.antibiotice.ro/joburi/specialist-marketing/",
-    "title": "Specialist Marketing",
+    "url": "https://jobs.example.com/careers/widget-engineer/",
+    "title": "Widget Engineer",
     "location": ["Iași"],
 }
 

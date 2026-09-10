@@ -1,7 +1,7 @@
 # Update Repo About
 
 ## Description
-Scraper automat pentru locurile de muncă ANTIBIOTICE SA (CIF: 1973096) — extrage de pe antibiotice.ro/cariere și ANOFM, validează via ANAF și publică pe peviitor.ro
+Scraper automat pentru locurile de muncă {{COMPANY_NAME}} (CIF: {{CIF}}) — extrage de pe the company careers site și ANOFM, validează via ANAF și publică pe peviitor.ro
 
 ## Topics (exactly 2, per TOPICS.md)
 - job-seeker-ro-spider

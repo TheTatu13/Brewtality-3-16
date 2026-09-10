@@ -1,251 +1,124 @@
 import { jest } from '@jest/globals';
 import fetch from 'node-fetch';
 
+import companyConfig from '../../scraper/config/company.js';
+import scraperConfig from '../../scraper/config/scraper.js';
+
 const API_BASE = 'https://api.peviitor.ro/v1';
 
-let HAS_API = false;
+// The template ships {{PLACEHOLDER}} config. The live-site parts of this suite
+// only make sense once a real company has been filled in.
+const CONFIGURED = !JSON.stringify({ ...companyConfig, ...scraperConfig }).includes('{{');
 
-let HAS_ANAF = false;
-
-function itIfApi(name, fn, timeout) {
-  if (HAS_API) {
-    return it(name, fn, timeout);
-  }
-  return it.skip(`${name} (skipped: API unavailable)`, fn, timeout);
-}
-
-function itIfAnaf(name, fn, timeout) {
-  if (HAS_ANAF) {
-    return it(name, fn, timeout);
-  }
-  return it.skip(`${name} (skipped: ANAF API unavailable)`, fn, timeout);
-}
-
-import companyConfig from '../../scraper/config/company.js';
 const TEST_CIF = companyConfig.id;
 const TEST_BRAND = companyConfig.brand;
 const COMPANY_NAME = companyConfig.company;
+const OWN_PREFIX = scraperConfig.ownJobUrlPrefix;
+
+let HAS_API = false;
+let HAS_ANAF = false;
+
+function gate(cond) {
+  return (name, fn, timeout) =>
+    cond ? it(name, fn, timeout) : it.skip(`${name} (skipped)`, fn, timeout);
+}
+const itLive = gate(CONFIGURED);
+const itIfApi = (name, fn, t) => gate(CONFIGURED && HAS_API)(name, fn, t);
+const itIfAnaf = (name, fn, t) => gate(CONFIGURED && HAS_ANAF)(name, fn, t);
 
 beforeAll(async () => {
+  if (!CONFIGURED) return;
   [HAS_API, HAS_ANAF] = await Promise.all([
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/scraper/jobs/?cif=${TEST_CIF}&rows=1`, {
-          signal: AbortSignal.timeout(5000)
-        });
-        return res.ok || res.status === 400;
-      } catch {
-        return false;
-      }
-    })(),
-    (async () => {
-      try {
-        const res = await fetch('https://demoanaf.ro/api/search?q=test', {
-          method: 'HEAD',
-          signal: AbortSignal.timeout(5000)
-        });
-        return res.ok;
-      } catch {
-        return false;
-      }
-    })()
+    fetch(`${API_BASE}/scraper/jobs/?cif=${TEST_CIF}&rows=1`, { signal: AbortSignal.timeout(5000) })
+      .then(r => r.ok || r.status === 400).catch(() => false),
+    fetch('https://demoanaf.ro/api/search?q=test', { method: 'HEAD', signal: AbortSignal.timeout(5000) })
+      .then(r => r.ok).catch(() => false),
   ]);
 });
 
 describe('E2E: Full Scraping Pipeline', () => {
 
-  describe('Job Sources — Live Fetch', () => {
+  describe('Parse + Transform Pipeline (offline, always runs)', () => {
     let index;
+    beforeAll(async () => { index = await import('../../scraper/index.js'); });
 
-    beforeAll(async () => {
-      index = await import('../../scraper/index.js');
+    it('maps a scraped job to the job model', () => {
+      const raw = { url: 'https://jobs.example.com/careers/widget-engineer/', title: 'Widget Engineer', location: ['Iași'] };
+      const model = index.mapToJobModel(raw, '12345678', 'EXAMPLE COMPANY SRL');
+      expect(model).toMatchObject({
+        url: raw.url, title: raw.title, company: 'EXAMPLE COMPANY SRL', cif: '12345678', status: 'scraped',
+      });
+      expect(model).toHaveProperty('date');
     });
 
-    it('should fetch the joburi sitemap and return /joburi/ permalinks', async () => {
+    it('transforms jobs and keeps only Romanian locations', () => {
+      const jobs = [
+        index.mapToJobModel({ url: 'https://jobs.example.com/careers/a/', title: 'A', location: ['Iași'] }, '12345678', 'EXAMPLE COMPANY SRL'),
+        index.mapToJobModel({ url: 'https://jobs.example.com/careers/b/', title: 'B', location: ['Bucharest'] }, '12345678', 'EXAMPLE COMPANY SRL'),
+      ];
+      const out = index.transformJobsForSOLR({ company: 'example company srl', cif: '12345678', jobs });
+      expect(out.company).toBe('EXAMPLE COMPANY SRL');
+      expect(out.jobs).toHaveLength(2);
+      for (const j of out.jobs) expect(j.location.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Live careers site (needs a configured company)', () => {
+    let index;
+    beforeAll(async () => { index = await import('../../scraper/index.js'); });
+
+    itLive('fetches the sitemap and returns job permalinks under the configured prefix', async () => {
       let entries = [];
-      try {
-        entries = await index.fetchSitemapJobUrls();
-      } catch (err) {
-        console.log('Sitemap fetch failed:', err.message);
-      }
+      try { entries = await index.fetchSitemapJobUrls(); } catch (err) { console.log('sitemap:', err.message); }
       expect(Array.isArray(entries)).toBe(true);
       for (const e of entries) {
-        expect(e.url).toMatch(/^https:\/\/www\.antibiotice\.ro\/joburi\/[^/]+\/?$/);
+        expect(e.url.startsWith(OWN_PREFIX)).toBe(true);
         expect(typeof e.slug).toBe('string');
       }
     }, 60000);
 
-    it('should scrape the official careers page without crashing', async () => {
+    itLive('scrapes the careers page without crashing', async () => {
       let jobs = [];
-      try {
-        jobs = await index.scrapeAntibioticeCareers();
-      } catch (err) {
-        console.log('careers scrape failed (site may be down):', err.message);
-      }
+      try { jobs = await index.scrapeCareers(); } catch (err) { console.log('scrape:', err.message); }
       expect(Array.isArray(jobs)).toBe(true);
       for (const j of jobs) {
         expect(typeof j.title).toBe('string');
         expect(j.title.length).toBeGreaterThan(0);
-        expect(j.url).toMatch(/^https:\/\/www\.antibiotice\.ro\/joburi\//);
-        expect(j.source).toBe('antibiotice.ro');
+        expect(typeof j.url).toBe('string');
       }
     }, 60000);
   });
 
-  describe('Parse + Transform Pipeline', () => {
-    let index;
-
-    beforeAll(async () => {
-      index = await import('../../scraper/index.js');
-    });
-
-    it('should map scraped jobs to the job model', () => {
-      const rawJob = {
-        url: 'https://www.antibiotice.ro/joburi/specialist-marketing/',
-        title: 'Specialist Marketing',
-        location: ['Iași'],
-        source: 'antibiotice.ro'
-      };
-
-      const model = index.mapToJobModel(rawJob, TEST_CIF, COMPANY_NAME);
-
-      expect(model).toHaveProperty('url', rawJob.url);
-      expect(model).toHaveProperty('title', rawJob.title);
-      expect(model).toHaveProperty('company', COMPANY_NAME);
-      expect(model).toHaveProperty('cif', TEST_CIF);
-      expect(model).toHaveProperty('status', 'scraped');
-      expect(model).toHaveProperty('date');
-    });
-
-    it('should transform jobs and keep Romanian locations', () => {
-      const jobs = [
-        index.mapToJobModel({
-          url: 'https://www.antibiotice.ro/joburi/job-1/',
-          title: 'Job 1',
-          location: ['Iași'],
-          source: 'antibiotice.ro'
-        }, TEST_CIF, COMPANY_NAME),
-        index.mapToJobModel({
-          url: 'https://www.antibiotice.ro/joburi/job-2/',
-          title: 'Job 2',
-          location: ['Bucharest'],
-          source: 'antibiotice.ro'
-        }, TEST_CIF, COMPANY_NAME)
-      ];
-
-      const payload = {
-        source: 'antibiotice.ro,anofm.ro',
-        company: COMPANY_NAME,
-        cif: TEST_CIF,
-        jobs
-      };
-
-      const transformed = index.transformJobsForSOLR(payload);
-
-      expect(transformed.company).toBe(COMPANY_NAME);
-      expect(transformed.jobs.length).toBe(jobs.length);
-
-      for (const job of transformed.jobs) {
-        expect(job).toHaveProperty('location');
-        expect(Array.isArray(job.location)).toBe(true);
-        expect(job.location.length).toBeGreaterThan(0);
-      }
-    });
-  });
-
-  describe('Company Validation Path', () => {
-    let anaf;
-    let company;
-
+  describe('Company validation (needs a configured company + network)', () => {
+    let anaf, company, api;
     beforeAll(async () => {
       anaf = await import('../../scraper/anaf.js');
       company = await import('../../scraper/company.js');
-    });
-
-    itIfAnaf('should find Antibiotice in ANAF and validate active status', async () => {
-      const results = await anaf.searchCompany(TEST_BRAND);
-
-      const match = results.find(c =>
-        c.cui.toString() === TEST_CIF &&
-        c.statusLabel === 'Funcțiune'
-      );
-      expect(match).toBeDefined();
-      expect(match.cui.toString()).toBe(TEST_CIF);
-
-      const anafData = await anaf.getCompanyFromANAF(TEST_CIF);
-      expect(anafData).toBeDefined();
-      expect(anafData.inactive).toBe(false);
-    }, 30000);
-
-    itIfApi('should run full validation and report active status with job count', async () => {
-      const result = await company.validateAndGetCompany();
-
-      expect(result.status).toBe('active');
-      expect(result.company).toBe(COMPANY_NAME);
-      expect(result.cif).toBe(TEST_CIF);
-
-      if (result.existingJobsCount === 0) {
-        console.log('⚠️ No jobs in API — skipping job count assertion');
-        return;
-      }
-      expect(result.existingJobsCount).toBeGreaterThan(0);
-    }, 30000);
-  });
-
-  describe('Inactive Company Handling', () => {
-    let anaf;
-
-    beforeAll(async () => {
-      anaf = await import('../../scraper/anaf.js');
-    });
-
-    itIfAnaf('should detect inactive/radiated companies via ANAF', async () => {
-      const results = await anaf.searchCompany(TEST_BRAND);
-
-      const nonActive = results.find(c => c.statusLabel !== 'Funcțiune');
-
-      if (nonActive) {
-        try {
-          const anafData = await anaf.getCompanyFromANAF(nonActive.cui.toString());
-          expect(anafData).toBeDefined();
-          if (anafData.inactive !== undefined) {
-            expect(anafData.inactive).toBe(true);
-          }
-        } catch {
-          expect(nonActive.statusLabel).toMatch(/Radiată|Inactiv|Suspendat/);
-        }
-      }
-    }, 30000);
-  });
-
-  describe('API Data Verification', () => {
-    let api;
-
-    beforeAll(async () => {
       api = await import('../../scraper/api.js');
     });
 
-    itIfApi('should have Antibiotice jobs in API with correct company name', async () => {
+    itIfAnaf('finds the company in ANAF and reads active status', async () => {
+      const results = await anaf.searchCompany(TEST_BRAND);
+      const match = results.find(c => c.cui.toString() === TEST_CIF && c.statusLabel === 'Funcțiune');
+      expect(match).toBeDefined();
+      const data = await anaf.getCompanyFromANAF(TEST_CIF);
+      expect(data.inactive).toBe(false);
+    }, 30000);
+
+    itIfApi('runs full validation and reports active status', async () => {
+      const result = await company.validateAndGetCompany();
+      expect(result.status).toBe('active');
+      expect(result.company).toBe(COMPANY_NAME);
+      expect(result.cif).toBe(TEST_CIF);
+    }, 30000);
+
+    itIfApi('has jobs in the API with the correct company name and CIF', async () => {
       const result = await api.querySOLR(TEST_CIF);
-
-      if (result.numFound === 0) {
-        console.log('⚠️ No jobs in API — skipping API data verification');
-        return;
-      }
-
+      if (result.numFound === 0) { console.log('no jobs yet — skipping assertions'); return; }
       for (const job of result.docs) {
         expect(job.company).toBe(COMPANY_NAME);
-        // Jobs store a zero-padded 8-digit CIF; the config keeps the real one.
         expect(String(job.cif).replace(/^0+/, '')).toBe(TEST_CIF.replace(/^0+/, ''));
       }
-    }, 15000);
-
-    itIfApi('should have Antibiotice company core entry with required fields', async () => {
-      const companyDoc = await api.getCompanyByCif(TEST_CIF);
-
-      expect(companyDoc).toBeDefined();
-      expect(companyDoc.company).toBe(COMPANY_NAME);
-      expect(companyDoc.status).toBe('activ');
     }, 15000);
   });
 });

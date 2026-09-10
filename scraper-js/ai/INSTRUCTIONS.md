@@ -2,9 +2,9 @@
 
 ## Project Purpose
 
-This scraper extracts job listings for **ANTIBIOTICE SA** (CIF: 1973096) from the company's own careers site and from ANOFM, and imports them to peviitor.ro.
+This scraper extracts job listings for **{{COMPANY_NAME}}** (CIF: {{CIF}}) from the company's own careers site and from ANOFM, and imports them to peviitor.ro.
 
-Targets: https://www.antibiotice.ro/cariere/open-position/, https://www.antibiotice.ro/joburi-sitemap.xml, https://mediere.anofm.ro
+Targets: {{CAREER_URL}}, {{SITEMAP_URL}}, https://mediere.anofm.ro
 
 ## Model Schemas
 
@@ -43,14 +43,14 @@ When working on this scraper:
 
 ## Workflow Steps
 
-1. **Start with brand** - We know the brand ("Antibiotice")
+1. **Start with brand** - We know the brand (from `config/company.json`)
 2. **Search in DemoANAF** - Find company by brand, get CIF from search results
 3. **Get company details from ANAF** - Using CIF, fetch full company data from ANAF
 4. **Validate with Peviitor** - Verify company exists in Peviitor, get group/brand info
 5. **Check existing jobs** - Query Peviitor API by CIF to see what jobs already exist
 6. **Check company status** - If ANAF status = "inactive" → DELETE our own jobs and STOP
 7. **Save company.json** - Save all ANAF + Peviitor data for backup
-8. **Scrape new jobs** - Parse `antibiotice.ro/cariere/open-position/` (HTTP + Cheerio), reconcile titles against `joburi-sitemap.xml`, add ANOFM jobs (by CIF)
+8. **Scrape new jobs** - Parse `the company careers site/open-position/` (HTTP + Cheerio), reconcile titles against `joburi-sitemap.xml`, add ANOFM jobs (by CIF)
 9. **Transform for API** - Validate and fix job data:
    - location: Only Romanian cities allowed
    - tags: lowercase, no diacritics
@@ -65,7 +65,7 @@ When working on this scraper:
 node scraper/index.js
 ```
 
-> **Important**: The CIF 1973096 is shared with other peviitor scrapers (e.g. inviitor-ro-nodejs-scraper). This scraper only upserts jobs it scraped from `antibiotice.ro`/ANOFM and only ever touches URLs under its own `ownJobUrlPrefix`. Jobs from other scrapers are preserved. Stale-job deletion is disabled by default (`staleJobDeletion: false`).
+> **Important**: If the CIF is shared with another peviitor scraper. This scraper only upserts jobs it scraped from the careers site / ANOFM and only ever touches URLs under its own `ownJobUrlPrefix`. Jobs from other scrapers are preserved. Stale-job deletion is disabled by default (`staleJobDeletion: false`).
 
 ## Full Workflow (automatic)
 
@@ -73,7 +73,7 @@ When running `node scraper/index.js`, the following steps happen automatically:
 
 1. **Check existing jobs count** - Query Peviitor API by CIF (read-only); note which URLs are ours
 2. **Validate company via ANAF** - Check company exists and is active
-3. **Scrape jobs** - Parse `antibiotice.ro/cariere` (HTTP + Cheerio) + `joburi-sitemap.xml` + ANOFM (by CIF)
+3. **Scrape jobs** - Parse `the company careers site` (HTTP + Cheerio) + `joburi-sitemap.xml` + ANOFM (by CIF)
 4. **Transform for API** - Fix locations (only Romanian cities), normalize fields
 5. **Upsert to API** - Add/update jobs (API handles duplicates by URL)
 6. **Delete stale jobs** - Disabled by default (`staleJobDeletion: false`); the nightly validator handles real 404s
@@ -100,7 +100,7 @@ company.js (validate company)
     └── SOLR ──► check existing jobs count
     │
     ▼ (if active)
-scrapeAntibioticeCareers()                     searchANOFM(CIF)
+scrapeCareers()                     searchANOFM(CIF)
     ├── fetchSitemapJobUrls()  (joburi-sitemap.xml → canonical permalinks)
     ├── fetchListing() + parseListing()  (open-position page, Cheerio)
     └── matchSitemapUrl(title, entries)  (exact → prefix → edit-distance ≤ 2)
@@ -125,7 +125,7 @@ generateJobsMarkdown() → docs/jobs.md
 |------|------|
 | `scraper/config/company.json` | **Single source of truth** for company identity (CIF, brand, URLs, API params) |
 | `scraper/config/company.js` | ESM wrapper that loads `scraper/config/company.json` for Node code |
-| `scraper/config/scraper.json` | Source config: `antibiotice.ro` sitemap/listing/jobArchive URLs, Cheerio selectors, delays, `ownJobUrlPrefix` |
+| `scraper/config/scraper.json` | Source config: the careers-site sitemap/listing/jobArchive URLs, Cheerio selectors, delays, `ownJobUrlPrefix` |
 | `scraper/config/scraper.js` | ESM wrapper that loads `scraper.json` (+ `userAgent`) for Node code |
 | `scraper/index.js` | Main entry point - full workflow: validate company → scrape → transform → upsert → generate docs/jobs.md |
 | `scraper/company.js` | Validates company via ANAF + CUIScan + Peviitor; caches in `tmp/company.json` (7-day TTL) |
@@ -155,8 +155,8 @@ generateJobsMarkdown() → docs/jobs.md
 - **CUIScan**: `https://cuiscan.ro/api.php?action=company&cui=CIF` - Company details fallback
 - **CUIFirma Search**: `https://cuifirma.ro/api/search?q=BRAND` - Search fallback
 - **Peviitor API**: `https://api.peviitor.ro/v1/` — all job and company operations go through this API
-- **Antibiotice — listing**: `https://www.antibiotice.ro/cariere/open-position/` — pagina publică de posturi deschise (HTML server-rendered)
-- **Antibiotice — sitemap**: `https://www.antibiotice.ro/joburi-sitemap.xml` — permalink-uri canonice `/joburi/<slug>/`
+- **{{COMPANY_BRAND}} — listing**: `{{CAREER_URL}}` — pagina publică de posturi deschise (HTML server-rendered)
+- **{{COMPANY_BRAND}} — sitemap**: `{{SITEMAP_URL}}` — permalink-uri canonice `/joburi/<slug>/`
 - **ANOFM**: `POST https://mediere.anofm.ro/api/entity/vw_public_job_posting` — filter by `employer_tax_code` (CIF)
 
 ## Rate Limiting & Politeness

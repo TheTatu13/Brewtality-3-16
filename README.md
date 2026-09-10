@@ -8,12 +8,31 @@ folder into a new repo, edit `config/`:
 
 | | |
 |---|---|
-| [`scraper-js/`](scraper-js/) | Node.js (ESM) · `node-fetch` + Cheerio · Jest · **130 tests** |
-| [`scraper-py/`](scraper-py/) | Python 3.10+ · `requests` + BeautifulSoup · pytest · **53 tests** · optional [Scrapling](https://github.com/D4Vinci/Scrapling) layer |
+| [`scraper-js/`](scraper-js/) | Node.js (ESM) · `node-fetch` + Cheerio · Jest · **131 tests** |
+| [`scraper-py/`](scraper-py/) | Python 3.10+ · `requests` + BeautifulSoup · pytest · **54 tests** · optional [Scrapling](https://github.com/D4Vinci/Scrapling) layer |
 
-Both target `antibiotice.ro/cariere` (ANTIBIOTICE SA, CIF 1973096) as the worked
-example and produce the same output contract: jobs upserted to
-`api.peviitor.ro`.
+Both produce the same output contract — jobs upserted to `api.peviitor.ro` — and
+both target a Romanian company's own careers site + ANOFM.
+
+## This is a template — fill in the placeholders
+
+Every company-specific value in `config/`, `docs/`, `ai/` and the workflows is a
+`{{PLACEHOLDER}}`. The unit tests pass with the placeholders in place (they use
+their own generic fixtures); the live (integration / e2e) tests self-skip until
+a real company is configured.
+
+| Placeholder | Fill with |
+|---|---|
+| `{{COMPANY_NAME}}` | legal name, uppercase (e.g. `EXAMPLE COMPANY SRL`) |
+| `{{COMPANY_BRAND}}` | commercial brand |
+| `{{CIF}}` | fiscal code (CUI), no `RO` prefix |
+| `{{WEBSITE_URL}}` | `https://www.example.com` |
+| `{{CAREER_URL}}` | the open-positions listing page |
+| `{{SITEMAP_URL}}` | the job sitemap URL (or `""` if there is none) |
+| `{{JOB_URL_PREFIX}}` | canonical job-permalink prefix, e.g. `https://www.example.com/jobs/` |
+| `{{DEFAULT_CITY}}` | HQ city (falls back to `România` in the transform) |
+| `{{SELECTOR_JOB_ARTICLE}}` / `{{SELECTOR_JOB_TITLE}}` / `{{SELECTOR_JOB_META}}` | the site's primary CSS selectors (keep the generic fallbacks that follow) |
+| `{{GITHUB_OWNER}}` / `{{GITHUB_REPO}}` | the derived repo's owner / name |
 
 ## The self-healing cascade
 
@@ -52,14 +71,13 @@ JS↔Python parity table and the Scrapling guide).
 ## Deriving a company scraper
 
 1. Copy `scraper-js/` **or** `scraper-py/` into a new repo.
-2. Edit `config/company.json` (or `scraper/config/company.json` for JS) — CIF,
-   name, brand, URLs.
-3. Edit `config/scraper.json` — the source URLs and the **selector cascades**
-   (primary + 1–2 fallbacks per field).
-4. Adapt `parse.py` / `parseListing` in `index.js` to the site's shape.
-5. Add a test per new cascade level (see `tests/`).
-6. `.github/workflows/` in the variant folder is what the derived repo runs at
-   its root.
+2. Find-and-replace every `{{PLACEHOLDER}}` (table above) across the folder.
+3. In `config/scraper.json`, set the site's **primary** selectors; keep the
+   generic fallbacks that follow them.
+4. Adapt `parse.py` / `parseListing` in `index.js` to the site's shape, and add
+   a test per new cascade level (see `tests/`).
+5. `.github/workflows/` in the variant folder is what the derived repo runs at
+   its own root.
 
 ## Running the template's own tests
 

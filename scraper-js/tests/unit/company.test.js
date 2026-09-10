@@ -49,11 +49,11 @@ function solrResponse(total, data) {
   };
 }
 
-const ANTIBIOTICE_ANAF_RECORD = {
-  cui: 1973096,
-  name: 'ANTIBIOTICE SA',
-  address: 'JUD. IAŞI, MUN. IAŞI, STR. VALEA LUPULUI, NR.1',
-  caenCode: '2110',
+const EXAMPLE_ANAF_RECORD = {
+  cui: 12345678,
+  name: 'EXAMPLE COMPANY SRL',
+  address: 'STR. EXAMPLE, NR.1, LOCALITATE',
+  caenCode: '0000',
   inactive: false,
   vatRegistered: true,
   eFacturaRegistered: false,
@@ -81,16 +81,16 @@ describe('company.js', () => {
   });
 
   describe('getCompanyData (no cache)', () => {
-    it('should fetch Antibiotice via direct CIF lookup and return company data', async () => {
-      mockFetch.mockResolvedValueOnce(anafCompanyResponse(ANTIBIOTICE_ANAF_RECORD));
+    it('should fetch the company via direct CIF lookup and return company data', async () => {
+      mockFetch.mockResolvedValueOnce(anafCompanyResponse(EXAMPLE_ANAF_RECORD));
 
       const result = await company.getCompanyData();
 
-      expect(result).toHaveProperty('company', 'ANTIBIOTICE SA');
-      expect(result).toHaveProperty('cif', '1973096');
+      expect(result).toHaveProperty('company', 'EXAMPLE COMPANY SRL');
+      expect(result).toHaveProperty('cif', '12345678');
       expect(result).toHaveProperty('active', true);
       expect(result).toHaveProperty('anafData');
-      expect(result.anafData.name).toBe('ANTIBIOTICE SA');
+      expect(result.anafData.name).toBe('EXAMPLE COMPANY SRL');
     });
 
     it('should throw when ANAF returns no data', async () => {
@@ -100,7 +100,7 @@ describe('company.js', () => {
     });
 
     it('should throw when ANAF returns no company name', async () => {
-      mockFetch.mockResolvedValueOnce(anafCompanyResponse({ cui: 1973096, name: null }));
+      mockFetch.mockResolvedValueOnce(anafCompanyResponse({ cui: 12345678, name: null }));
 
       await expect(company.getCompanyData()).rejects.toThrow('ANAF returned no company name');
     });
@@ -109,10 +109,10 @@ describe('company.js', () => {
   describe('getCompanyData (with cache)', () => {
     const cachedData = {
       validatedAt: new Date().toISOString(),
-      anaf: ANTIBIOTICE_ANAF_RECORD,
+      anaf: EXAMPLE_ANAF_RECORD,
       summary: {
-        company: 'ANTIBIOTICE SA',
-        cif: '1973096',
+        company: 'EXAMPLE COMPANY SRL',
+        cif: '12345678',
         active: true
       }
     };
@@ -124,8 +124,8 @@ describe('company.js', () => {
     it('should use cached company data when available', async () => {
       const result = await company.getCompanyData();
 
-      expect(result.company).toBe('ANTIBIOTICE SA');
-      expect(result.cif).toBe('1973096');
+      expect(result.company).toBe('EXAMPLE COMPANY SRL');
+      expect(result.cif).toBe('12345678');
       expect(result.active).toBe(true);
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -138,26 +138,26 @@ describe('company.js', () => {
 
     it('should return company data with status active', async () => {
       mockFetch
-        .mockResolvedValueOnce(anafCompanyResponse(ANTIBIOTICE_ANAF_RECORD))
+        .mockResolvedValueOnce(anafCompanyResponse(EXAMPLE_ANAF_RECORD))
         .mockResolvedValueOnce(solrResponse(5, [
           { url: 'https://test.com/1', title: 'Job 1' },
           { url: 'https://test.com/2', title: 'Job 2' }
         ]))
-        .mockResolvedValueOnce(peviitorResponse([{ company: 'ANTIBIOTICE SA' }]));
+        .mockResolvedValueOnce(peviitorResponse([{ company: 'EXAMPLE COMPANY SRL' }]));
 
       const result = await company.validateAndGetCompany();
 
       expect(result).toHaveProperty('status', 'active');
-      expect(result).toHaveProperty('company', 'ANTIBIOTICE SA');
-      expect(result).toHaveProperty('cif', '1973096');
+      expect(result).toHaveProperty('company', 'EXAMPLE COMPANY SRL');
+      expect(result).toHaveProperty('cif', '12345678');
       expect(result).toHaveProperty('existingJobsCount');
       expect(typeof result.existingJobsCount).toBe('number');
     });
 
-    // Antibiotice e activă — testul inactive se rulează doar dacă firma e inactivă
-    if (ANTIBIOTICE_ANAF_RECORD.inactive) {
+    // the fixture company is active — testul inactive se rulează doar dacă firma e inactivă
+    if (EXAMPLE_ANAF_RECORD.inactive) {
       it('should return inactive status when company is inactive', async () => {
-        const inactiveRecord = { ...ANTIBIOTICE_ANAF_RECORD, inactive: true };
+        const inactiveRecord = { ...EXAMPLE_ANAF_RECORD, inactive: true };
 
         mockFetch
           .mockResolvedValueOnce(anafCompanyResponse(inactiveRecord))

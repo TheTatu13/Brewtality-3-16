@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import re
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 from . import api, fetch
 from .config import COMPANY_CIF, OWN_URL_PREFIX, company, scraper
@@ -17,7 +18,19 @@ from .validate import assert_scrape_yielded_jobs, filter_valid_jobs
 log = logging.getLogger("scraper.main")
 
 _LOC_RX = re.compile(r"<loc>\s*([^<\s]+)\s*</loc>")
-_JOB_PERMALINK_RX = re.compile(r"/joburi/[^/]+/?$")
+
+# The path segment that marks an individual job permalink, derived from
+# ``ownJobUrlPrefix`` (e.g. "https://site.com/jobs/" -> "/jobs/").
+try:
+    _JOB_PATH = urlparse(OWN_URL_PREFIX).path.rstrip("/") + "/"
+except Exception:  # noqa: BLE001
+    _JOB_PATH = "/"
+_JOB_PERMALINK_RX = re.compile(re.escape(_JOB_PATH) + r"[^/]+/?$")
+
+try:
+    _CAREERS_SOURCE = urlparse(scraper["sources"]["listing"]).netloc or "careers-site"
+except Exception:  # noqa: BLE001
+    _CAREERS_SOURCE = "careers-site"
 
 
 def _is_own(url: str) -> bool:
@@ -25,8 +38,11 @@ def _is_own(url: str) -> bool:
 
 
 def fetch_sitemap_job_urls() -> list[dict]:
+    sitemap_url = scraper["sources"]["sitemap"]
+    if not sitemap_url or sitemap_url.startswith("{{"):  # not configured
+        return []
     try:
-        resp = fetch.get(scraper["sources"]["sitemap"], label="sitemap")
+        resp = fetch.get(sitemap_url, label="sitemap")
         if not resp.ok:
             log.info("sitemap returned %d", resp.status_code)
             return []
@@ -80,7 +96,7 @@ def scrape_careers() -> list[dict]:
                 "location": scraper["defaultLocation"],
                 "workmode": scraper["defaultWorkmode"],
                 "expirationdate": item.get("expirationdate"),
-                "source": "antibiotice.ro",
+                "source": _CAREERS_SOURCE,
             })
     elif entries:
         log.info("listing unreachable -- sitemap-only fallback (titles from slugs)")
@@ -90,10 +106,10 @@ def scrape_careers() -> list[dict]:
                 "title": e["slug"].replace("-", " ").title(),
                 "location": scraper["defaultLocation"],
                 "workmode": scraper["defaultWorkmode"],
-                "source": "antibiotice.ro",
+                "source": _CAREERS_SOURCE,
             })
 
-    log.info("found %d jobs on antibiotice.ro", len(jobs))
+    log.info("found %d jobs on %s", len(jobs), _CAREERS_SOURCE)
     return jobs
 
 

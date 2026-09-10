@@ -1,38 +1,27 @@
-# Robots.txt Analysis — antibiotice.ro
+# Robots.txt & scraping policy
 
-Sursa: https://www.antibiotice.ro/robots.txt
+Fill this in per derived company. Check `{{WEBSITE_URL}}/robots.txt` before the
+first run and confirm the careers listing + sitemap are not disallowed for a
+general `User-agent: *`.
 
-## Ce scrape-uim
+## What this scraper reads
 
-| Cale | Rol |
+| Path | Role |
 |---|---|
-| `https://www.antibiotice.ro/cariere/open-position/` | Listing-ul public al posturilor deschise (HTML server-rendered) |
-| `https://www.antibiotice.ro/joburi-sitemap.xml` | Sitemap-ul cu permalink-urile canonice `/joburi/<slug>/` |
-| `https://www.antibiotice.ro/joburi/<slug>/` | Paginile individuale de job (doar referite, nu crawl-uite integral) |
+| `{{CAREER_URL}}` | Public list of open positions (server-rendered HTML) |
+| `{{SITEMAP_URL}}` | Job sitemap — canonical `{{JOB_URL_PREFIX}}<slug>/` permalinks |
+| `{{JOB_URL_PREFIX}}<slug>/` | Individual job pages (only referenced, not fully crawled) |
+| ANOFM | `POST https://mediere.anofm.ro/api/entity/vw_public_job_posting` filtered by CIF |
 
-## Interpretare
+## Politeness (defaults — keep unless the site explicitly permits more)
 
-Site-ul oficial al companiei publică sitemap-ul de job-uri explicit pentru
-indexare. Pagina de carieră și sitemap-ul sunt conținut public, destinat
-candidaților. Nu există zonă de autentificare implicată.
-
-## Politețe
-
-Scraper-ul este intenționat lent și minimal:
-
-| Măsură | Valoare | Unde |
+| Measure | Value | Where |
 |---|---|---|
-| Request-uri | secvențiale, 1 la un moment dat | `scraper/index.js` (fără `Promise.all` pe fetch-uri) |
-| Delay între pagini | `pageDelayMs` (1000 ms) | `scraper/config/scraper.json` |
+| Requests | sequential, one at a time | `scraper/index.js` (no `Promise.all` on fetches) |
+| Delay between pages | `pageDelayMs` (1000 ms) | `scraper/config/scraper.json` |
 | Timeout | `requestTimeoutMs` (10000 ms) | `scraper/config/scraper.json` |
-| User-Agent | `job_seeker_ro_spider` | identifică scraper-ul în log-urile serverului |
-| Volum | 2 request-uri pe site (listing + sitemap) + ANOFM | — |
+| User-Agent | `job_seeker_ro_spider` | identifies the scraper in server logs |
+| Volume | listing + sitemap + ANOFM (3 requests) | — |
 
-Nu se descarcă asset-uri, nu se randează JS, nu se urmăresc link-uri în afara
-`/joburi/`.
-
-## Diferență față de template-ul EPAM
-
-Template-ul EPAM scrape-uia `careers.epam.com` printr-un API JSON. Aici sursa
-principală este site-ul oficial al companiei (`antibiotice.ro`), server-rendered,
-citit cu HTTP + Cheerio — fără browser headless, fără Playwright.
+No assets downloaded, no JS rendered, no links followed outside the job-URL
+prefix. Never bypass a login or authentication wall.

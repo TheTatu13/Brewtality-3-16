@@ -3,8 +3,8 @@
 ## [0.1.0] - 2026-09-10
 
 ### Added
-- Initial skeleton — Python counterpart of the `*-nodejs-scraper` template,
-  example target `antibiotice.ro/cariere` (ANTIBIOTICE SA, CIF 1973096).
+- Initial skeleton — the Python half of the Brewtality-3-16 template. All
+  company identity is `{{PLACEHOLDER}}` in `config/*.json`.
 - `scraper/self_healing.py` — generic selector cascade: `first_match`,
   `locate_articles` (CSS → JSON-LD → regex `<article>` → none),
   `json_ld_job_postings`, `css_text`/`structural_text`/`regex_text`.

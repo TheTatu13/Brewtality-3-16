@@ -1,11 +1,13 @@
-# peviitor-scraper-py
+# scraper-py — Python scraper template
 
-Self-healing job scraper skeleton for [peviitor.ro](https://peviitor.ro) — the
-Python counterpart of the `*-nodejs-scraper` template. Same output contract
-(jobs upserted to `api.peviitor.ro`), same **self-healing selector cascade**,
-plus an **optional** adaptive layer via [Scrapling](https://github.com/D4Vinci/Scrapling).
+The Python half of the [Brewtality-3-16](../README.md) self-healing job-scraper
+template for [peviitor.ro](https://peviitor.ro) ([`scraper-js/`](../scraper-js/)
+is the Node.js half). `requests` + BeautifulSoup, pytest, plus an **optional**
+adaptive layer via [Scrapling](https://github.com/D4Vinci/Scrapling).
 
-Example target: `antibiotice.ro/cariere` (ANTIBIOTICE SA, CIF 1973096).
+> **This is a template.** `config/*.json` ships `{{PLACEHOLDER}}` values — see
+> the [repo-root README](../README.md) for the placeholder list. Copy this
+> folder into a new repo and fill them in.
 
 ## Quick start
 

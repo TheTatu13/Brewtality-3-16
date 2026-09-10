@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import { validateJob, filterValidJobs, assertScrapeYieldedJobs } from "../../scraper/validate.js";
 
 const goodJob = {
-  url: "https://www.antibiotice.ro/joburi/specialist-marketing/",
+  url: "https://jobs.example.com/careers/widget-engineer/",
   title: "Specialist Marketing",
   location: ["Iași"]
 };

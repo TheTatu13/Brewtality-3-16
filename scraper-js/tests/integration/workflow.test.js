@@ -19,21 +19,22 @@ async function checkAnafAvailability() {
   }
 }
 
+import companyConfig from '../../scraper/config/company.js';
+
+// The template ships {{PLACEHOLDER}} config — the live API/ANAF checks only make
+// sense once a real company has been filled in.
+const CONFIGURED = !JSON.stringify(companyConfig).includes('{{');
+
 function itIfApi(name, fn, timeout) {
-  if (HAS_API) {
-    return it(name, fn, timeout);
-  }
-  return it.skip(`${name} (skipped: API unavailable)`, fn, timeout);
+  if (CONFIGURED && HAS_API) return it(name, fn, timeout);
+  return it.skip(`${name} (skipped: ${CONFIGURED ? 'API unavailable' : 'company not configured'})`, fn, timeout);
 }
 
 function itIfAnaf(name, fn, timeout) {
-  if (HAS_ANAF) {
-    return it(name, fn, timeout);
-  }
-  return it.skip(`${name} (skipped: ANAF API unavailable)`, fn, timeout);
+  if (CONFIGURED && HAS_ANAF) return it(name, fn, timeout);
+  return it.skip(`${name} (skipped: ${CONFIGURED ? 'ANAF unavailable' : 'company not configured'})`, fn, timeout);
 }
 
-import companyConfig from '../../scraper/config/company.js';
 const COMPANY_CIF = companyConfig.id;
 const COMPANY_BRAND = companyConfig.brand;
 const COMPANY_NAME = companyConfig.company;
@@ -149,7 +150,7 @@ describe('Integration: API Workflow', () => {
       expect(result).toHaveProperty('location');
       expect(Array.isArray(result.location)).toBe(true);
       // website/career are maintained by whichever scraper "owns" the company
-      // core record (here: inviitor-ro-nodejs-scraper). Assert only if present.
+      // core record. Assert only if present.
       if (result.website !== undefined) {
         expect(Array.isArray(result.website)).toBe(true);
         expect(result.website[0]).toMatch(/^https?:\/\/.+/);
@@ -238,12 +239,12 @@ describe('Integration: API Workflow', () => {
       const searchResults = await anaf.searchCompany(COMPANY_BRAND);
       expect(searchResults.length).toBeGreaterThan(0);
 
-      const antibioticeCompany = searchResults.find(c =>
+      const matchedCompany = searchResults.find(c =>
         c.cui.toString() === COMPANY_CIF && c.statusLabel === 'Funcțiune'
       );
-      expect(antibioticeCompany).toBeDefined();
+      expect(matchedCompany).toBeDefined();
 
-      const anafData = await anaf.getCompanyFromANAF(antibioticeCompany.cui.toString());
+      const anafData = await anaf.getCompanyFromANAF(matchedCompany.cui.toString());
       expect(anafData.name).toBe(COMPANY_NAME);
       expect(anafData.inactive).toBe(false);
     }, 30000);

@@ -55,7 +55,7 @@ so the fingerprints survive between CI runs, or accept a cold start each run.
 
 ## JS ↔ Python parity
 
-The `*-nodejs-scraper` template implements the **same cascade** in
+The JS half (`../scraper-js/`) implements the **same cascade** in
 `scraper/self-healing.js` — Cheerio has no Scrapling equivalent, so JS does
 levels 1–4 by hand. The two are deliberately kept in step:
 

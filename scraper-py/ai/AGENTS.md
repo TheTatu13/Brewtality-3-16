@@ -3,7 +3,7 @@
 ## Project
 `peviitor-scraper-py` — self-healing job scraper skeleton for peviitor.ro
 (Python, `requests` + BeautifulSoup, pytest). The Python counterpart of the
-`*-nodejs-scraper` template.
+Brewtality-3-16 template (`scraper-js/`).
 
 ## Layout & what is generic vs. site-specific
 

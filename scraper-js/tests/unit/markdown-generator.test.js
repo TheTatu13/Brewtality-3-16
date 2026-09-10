@@ -1,22 +1,22 @@
 import { generateJobsMarkdown } from "../../scraper/markdown-generator.js";
 
 const baseCompany = {
-  id: "1973096",
-  company: "ANTIBIOTICE SA",
-  brand: "Antibiotice",
+  id: "12345678",
+  company: "EXAMPLE COMPANY SRL",
+  brand: "Example",
   status: "activ",
   location: ["Iași"],
-  website: ["https://www.antibiotice.ro"],
-  career: ["https://www.antibiotice.ro/cariere/open-position/"],
+  website: ["https://www.example.com"],
+  career: ["https://jobs.example.com/careers/"],
   lastScraped: "2026-09-06"
 };
 
 const baseJob = {
-  url: "https://www.antibiotice.ro/joburi/specialist-marketing/",
-  title: "Specialist Marketing",
+  url: "https://jobs.example.com/careers/widget-engineer/",
+  title: "Widget Engineer",
   workmode: "on-site",
   location: ["Iași"],
-  tags: ["marketing", "comunicare"],
+  tags: ["javascript", "node.js"],
   status: "scraped"
 };
 
@@ -24,17 +24,17 @@ describe("generateJobsMarkdown", () => {
   describe("company section", () => {
     it("includes company name as h1", () => {
       const md = generateJobsMarkdown(baseCompany, []);
-      expect(md).toContain("# ANTIBIOTICE SA");
+      expect(md).toContain("# EXAMPLE COMPANY SRL");
     });
 
     it("includes CIF", () => {
       const md = generateJobsMarkdown(baseCompany, []);
-      expect(md).toContain("1973096");
+      expect(md).toContain("12345678");
     });
 
     it("includes brand", () => {
       const md = generateJobsMarkdown(baseCompany, []);
-      expect(md).toContain("Antibiotice");
+      expect(md).toContain("Example");
     });
 
     it("includes status", () => {
@@ -44,12 +44,12 @@ describe("generateJobsMarkdown", () => {
 
     it("includes website as markdown link", () => {
       const md = generateJobsMarkdown(baseCompany, []);
-      expect(md).toContain("[https://www.antibiotice.ro](https://www.antibiotice.ro)");
+      expect(md).toContain("[https://www.example.com](https://www.example.com)");
     });
 
     it("includes career page as markdown link", () => {
       const md = generateJobsMarkdown(baseCompany, []);
-      expect(md).toContain("[https://www.antibiotice.ro/cariere/open-position/](https://www.antibiotice.ro/cariere/open-position/)");
+      expect(md).toContain("[https://jobs.example.com/careers/](https://jobs.example.com/careers/)");
     });
 
     it("includes lastScraped date", () => {
@@ -58,9 +58,9 @@ describe("generateJobsMarkdown", () => {
     });
 
     it("omits optional fields when not present", () => {
-      const minimal = { id: "1973096", company: "ANTIBIOTICE SA" };
+      const minimal = { id: "12345678", company: "EXAMPLE COMPANY SRL" };
       const md = generateJobsMarkdown(minimal, []);
-      expect(md).toContain("# ANTIBIOTICE SA");
+      expect(md).toContain("# EXAMPLE COMPANY SRL");
       expect(md).not.toContain("Brand");
       expect(md).not.toContain("Last Scraped");
     });
@@ -79,12 +79,12 @@ describe("generateJobsMarkdown", () => {
 
     it("includes job title as h3", () => {
       const md = generateJobsMarkdown(baseCompany, [baseJob]);
-      expect(md).toContain("### Specialist Marketing");
+      expect(md).toContain("### Widget Engineer");
     });
 
     it("includes job URL as markdown link", () => {
       const md = generateJobsMarkdown(baseCompany, [baseJob]);
-      expect(md).toContain("[https://www.antibiotice.ro/joburi/specialist-marketing/]");
+      expect(md).toContain("[https://jobs.example.com/careers/widget-engineer/]");
     });
 
     it("includes workmode", () => {
@@ -99,7 +99,7 @@ describe("generateJobsMarkdown", () => {
 
     it("includes tags", () => {
       const md = generateJobsMarkdown(baseCompany, [baseJob]);
-      expect(md).toContain("marketing, comunicare");
+      expect(md).toContain("javascript, node.js");
     });
 
     it("includes status", () => {
@@ -108,17 +108,17 @@ describe("generateJobsMarkdown", () => {
     });
 
     it("renders multiple jobs", () => {
-      const job2 = { ...baseJob, title: "Operator Producție", url: "https://mediere.anofm.ro/app/module/mediere/job/700001" };
+      const job2 = { ...baseJob, title: "QA Engineer", url: "https://jobs.example.com/careers/qa-engineer/" };
       const md = generateJobsMarkdown(baseCompany, [baseJob, job2]);
-      expect(md).toContain("### Specialist Marketing");
-      expect(md).toContain("### Operator Producție");
+      expect(md).toContain("### Widget Engineer");
+      expect(md).toContain("### QA Engineer");
       expect(md).toContain("## Current Job Listings (2)");
     });
 
     it("handles job with no optional fields", () => {
-      const minimal = { url: "https://www.antibiotice.ro/joburi/analist-calitate/", title: "Analist Calitate" };
+      const minimal = { url: "https://jobs.example.com/careers/qa-analyst/", title: "QA Analyst" };
       const md = generateJobsMarkdown(baseCompany, [minimal]);
-      expect(md).toContain("### Analist Calitate");
+      expect(md).toContain("### QA Analyst");
       expect(md).not.toContain("Work Mode");
       expect(md).not.toContain("Tags");
     });

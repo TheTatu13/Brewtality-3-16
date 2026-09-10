@@ -4,13 +4,13 @@
 
 | File | Description |
 |------|-------------|
-| `scraper/index.js` | Main scraper - full workflow: validate company → scrape → transform → upsert → generate docs/jobs.md. Source-specific: `scrapeAntibioticeCareers`, `fetchSitemapJobUrls`, `parseListing`, `matchSitemapUrl`, `parseDeadline`, `slugify`, `searchANOFM` |
+| `scraper/index.js` | Main scraper - full workflow: validate company → scrape → transform → upsert → generate docs/jobs.md. Source-specific: `scrapeCareers`, `fetchSitemapJobUrls`, `parseListing`, `matchSitemapUrl`, `parseDeadline`, `slugify`, `searchANOFM` |
 | `scraper/company.js` | Validates company via ANAF + CUIScan + Peviitor APIs, checks if company is active/inactive |
 | `scraper/anaf.js` | Multi-source company data module - ANAF + CUIScan (company details) + CUIFirma (search). Exports `getCompanyFromANAF`, `getCompanyFromANAFWithFallback`, `searchCompany` |
 | `scraper/demoanaf.js` | CLI entry point for anaf.js (thin wrapper) |
 | `scraper/api.js` | Peviitor API operations module - exports querySOLR, deleteJobByUrl, upsertJobs + standalone verify/extract/company commands |
 | `scraper/validate-jobs.js` | **Generic deep validator (manual use).** Full GET requests, parses page body for "no longer available" keywords. Works with any CIF, single URL, or file. Slower but catches soft-404s. Not used by CI. |
-| `scraper/job-validator.js` | Shared validation primitives - exports validateByHead(url), validateByContent(url, opts), validateByBrowser(url, opts), DEFAULT_EXPIRED_KEYWORDS. Used by `validate-jobs.js`, `tests/validate-antibiotice-jobs.js`, and the deep-validate workflow. |
+| `scraper/job-validator.js` | Shared validation primitives - exports validateByHead(url), validateByContent(url, opts), validateByBrowser(url, opts), DEFAULT_EXPIRED_KEYWORDS. Used by `validate-jobs.js`, `tests/validate-company-jobs.js`, and the deep-validate workflow. |
 | `scraper/self-healing.js` | **Generic** selector cascade — `firstMatch`, `locateArticles`, `jsonLdJobPostings`, `cssText`/`structuralText`/`regexText`. Primary CSS → fallback CSS → structural/JSON-LD → regex, `try/catch` + log per strategy. Consumed by `parseListing`. See `ai/AGENTS.md`. |
 | `scraper/validate.js` | **Generic** pre-publish data validation — `validateJob` (url/title/location/salary), `filterValidJobs` (drops + logs), `assertScrapeYieldedJobs` (the 0-result canary). |
 | `scraper/markdown-generator.js` | Generates docs/jobs.md - exports generateJobsMarkdown(companyData, jobs) |
@@ -21,7 +21,7 @@
 |------|-------------|
 | `scraper/config/company.json` | **Single source of truth for company identity.** All scraper code, CI workflows, and the static HTML read from this file. To derive a scraper for a different company, this is the primary file to edit. `scraperFile` must be the GitHub Actions workflow URL (not raw). |
 | `scraper/config/company.js` | ESM wrapper that imports and exposes `scraper/config/company.json` to Node code |
-| `scraper/config/scraper.json` | Source config: `antibiotice.ro` sitemap/listing/jobArchive URLs, Cheerio selectors, delays, timeouts, `ownJobUrlPrefix`, `defaultLocation`, `defaultWorkmode` |
+| `scraper/config/scraper.json` | Source config: the careers-site sitemap/listing/jobArchive URLs, Cheerio selectors, delays, timeouts, `ownJobUrlPrefix`, `defaultLocation`, `defaultWorkmode` |
 | `scraper/config/scraper.js` | ESM wrapper that exposes `scraper.json` (+ `userAgent`) to Node code |
 
 ## Test Files — tests/
@@ -30,7 +30,7 @@
 |------|-------------|
 | `tests/package.json` | Jest config for test suite - experimental VM modules, test scripts (unit/integration/e2e/consistency) |
 | `tests/company.json` | Mock company data used in unit tests |
-| `tests/validate-antibiotice-jobs.js` | **Company-specific validator (used by CI).** Modes: `--head` (default), `--content`. Called nightly by `automation-testing.yml` and manually via `job-deep-validate.yml`. Supports `--dry-run` and `--delete`. |
+| `tests/validate-company-jobs.js` | **Company-specific validator (used by CI).** Modes: `--head` (default), `--content`. Called nightly by `automation-testing.yml` and manually via `job-deep-validate.yml`. Supports `--dry-run` and `--delete`. |
 | `tests/unit/index.test.js` | Unit tests for index.js - slugify, parseDeadline, matchSitemapUrl, parseListing, mapToJobModel, transformJobsForSOLR |
 | `tests/unit/company.test.js` | Unit tests for company.js - getCompanyBrand, validateAndGetCompany, fallback caching |
 | `tests/unit/api.test.js` | Unit tests for api.js - query, upsert, delete, HTTP error handling |
@@ -40,7 +40,7 @@
 | `tests/unit/validate.test.js` | Unit tests for validate.js - url/title/location/salary rules, `filterValidJobs`, canary |
 | `tests/unit/markdown-generator.test.js` | Unit tests for markdown-generator.js |
 | `tests/integration/workflow.test.js` | Integration tests - ANAF live API, Peviitor API |
-| `tests/e2e/scraper.test.js` | E2E tests - full pipeline with real antibiotice.ro, ANAF, and Peviitor API |
+| `tests/e2e/scraper.test.js` | E2E tests - full pipeline with the live careers site, ANAF, and Peviitor API |
 | `tests/consistency/public.test.js` | Verifies repository is public on GitHub |
 | `tests/consistency/repo.test.js` | Verifies default branch, GitHub Pages, workflow files |
 | `tests/consistency/topics.test.js` | Verifies repository has required topics: job-seeker-ro-spider, peviitor-ro |
@@ -61,7 +61,7 @@
 
 | `ISSUES.md` | Issue tracking conventions |
 | `PUBLIC.md` | Notes on public visibility and data policies |
-| `ROBOTS.md` | robots.txt analysis and scraping policy for antibiotice.ro |
+| `ROBOTS.md` | robots.txt analysis and scraping policy for the careers site |
 | `SECURITY.md` | Security policy and vulnerability reporting |
 | `TOPICS.md` | Repository topics documentation |
 | `UPDATE-REPO-ABOUT.md` | Instructions for updating repo description/about |
@@ -99,4 +99,4 @@
 
 - All `.md` schema files (job-model.md, company-model.md) are dynamic — check peviitor_core README.md for updates
 - `tmp/` directory holds runtime artifacts (company.json, jobs.json) — not committed
-- Full workflow: validate company (ANAF+CUIScan+CUIFirma+Peviitor) → scrape antibiotice.ro/cariere + ANOFM → transform → upsert → generate docs/jobs.md
+- Full workflow: validate company (ANAF+CUIScan+CUIFirma+Peviitor) → scrape the company careers site + ANOFM → transform → upsert → generate docs/jobs.md

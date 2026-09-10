@@ -19,4 +19,4 @@ jobs:
         run: npm install
 
       - name: Deep validate (content mode — GET + body scan, catches soft-404s)
-        run: node --no-deprecation tests/validate-antibiotice-jobs.js --content --timeout 30000 --delete
+        run: node --no-deprecation tests/validate-company-jobs.js --content --timeout 30000 --delete

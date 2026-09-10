@@ -1,10 +1,10 @@
 {
-  "id": "1973096",
-  "company": "ANTIBIOTICE SA",
-  "brand": "Antibiotice",
+  "id": "{{CIF}}",
+  "company": "{{COMPANY_NAME}}",
+  "brand": "{{COMPANY_BRAND}}",
   "status": "activ",
-  "location": ["Iași"],
-  "website": ["https://www.antibiotice.ro"],
-  "career": ["https://www.antibiotice.ro/cariere/open-position/"],
-  "scraperFile": "https://github.com/TheTatu13/peviitor-scraper-py/actions/workflows/scrape.yml"
+  "location": ["{{DEFAULT_CITY}}"],
+  "website": ["{{WEBSITE_URL}}"],
+  "career": ["{{CAREER_URL}}"],
+  "scraperFile": "https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml"
 }

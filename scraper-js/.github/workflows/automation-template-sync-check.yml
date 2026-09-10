@@ -62,7 +62,7 @@ jobs:
           LABEL="template-sync"
           gh label create "$LABEL" \
             --color "bfdadc" \
-            --description "EPAM template has a newer version available" \
+            --description "Brewtality-3-16 template has a newer version available" \
             2>/dev/null || true
 
           EXISTING=$(gh issue list --label "$LABEL" --state open --json number --jq '.[0].number // empty')
@@ -73,11 +73,11 @@ jobs:
 
           BODY="## Template Update Available
 
-          A newer version of the **[EPAM template](https://github.com/${{ steps.template.outputs.repo }})** is available.
+          A newer version of the **[Brewtality-3-16 template](https://github.com/${{ steps.template.outputs.repo }})** is available.
 
           | | Version |
           |---|---|
-          | **Template (EPAM)** | ${{ steps.versions.outputs.template }} |
+          | **Template** | ${{ steps.versions.outputs.template }} |
           | **This repo** | ${{ steps.versions.outputs.derived }} |
 
           ### What to do
@@ -87,7 +87,7 @@ jobs:
           4. Close this issue when done"
 
           gh issue create \
-            --title "Template sync: EPAM v${{ steps.versions.outputs.template }} available" \
+            --title "Template sync: template v${{ steps.versions.outputs.template }} available" \
             --label "$LABEL" \
             --body "$BODY"
         env:

@@ -1,7 +1,8 @@
-"""Parse the antibiotice.ro careers listing into job dicts.
+"""Parse the company's careers listing into job dicts.
 
 The only site-specific module. Every field goes through the self-healing
-cascade in ``scraper.self_healing`` driven by ``config/scraper.json``.
+cascade in ``scraper.self_healing`` driven by ``config/scraper.json``
+(``{{PLACEHOLDER}}`` selectors in the template — tests pass their own).
 """
 
 from __future__ import annotations
@@ -75,46 +76,52 @@ def _clean_title(raw: str | None) -> str | None:
     return text or None
 
 
-def parse_listing(html: str) -> list[dict]:
+def parse_listing(html: str, selectors: dict | None = None) -> list[dict]:
     """Parse the open-positions page into ``{title, expirationdate}`` items,
-    self-healing through the selector cascade:
+    self-healing through the selector cascade (default: ``config/scraper.json``;
+    tests pass ``selectors`` explicitly):
 
         article blocks:  CSS list -> JSON-LD JobPosting -> regex <article>
         title:           CSS list -> Scrapling (optional) -> regex <hN>/<a>
         deadline:        CSS list -> date regex over the whole block text
     """
-    articles = locate_articles(html, _SEL["jobArticle"])
+    sel = selectors if selectors is not None else _SEL
+    articles = locate_articles(html, sel["jobArticle"])
     items: list[dict] = []
     strategies: set[str] = set()
+    seen: set[str] = set()  # a broad fallback selector can match nested blocks
 
     if articles.mode == "jsonld":
         for posting in articles.json_ld:
             title = _clean_title(posting.get("title"))
-            if not title:
+            if not title or title.lower() in seen:
                 continue
+            seen.add(title.lower())
             strategies.add("jsonld")
             items.append({"title": title, "expirationdate": parse_deadline(posting.get("validThrough"))})
         log.info("parse_listing: %d items via JSON-LD JobPosting", len(items))
         return items
 
+    title_primary = sel["jobTitle"][0] if isinstance(sel["jobTitle"], list) else sel["jobTitle"]
     for i, scope in enumerate(articles.scopes):
         match = first_match(
             f"title[{i}]",
             [
-                ("css-cascade", lambda scope=scope: scope.text(_SEL["jobTitle"]).value),
-                scrapling_text(scope.raw(), _SEL["jobTitle"][0]),
+                ("css-cascade", lambda scope=scope: scope.text(sel["jobTitle"]).value),
+                scrapling_text(scope.raw(), title_primary),
                 regex_text(scope.raw(), _HN_RX),
                 regex_text(scope.raw(), _A_RX),
             ],
             silent=True,
         )
         title = _clean_title(match.value)
-        if not title:
+        if not title or title.lower() in seen:
             continue
+        seen.add(title.lower())
         if match.strategy:
             strategies.add(match.strategy)
 
-        meta = scope.text(_SEL["jobMeta"]).value
+        meta = scope.text(sel["jobMeta"]).value
         deadline = parse_deadline(meta) or parse_deadline(scope.full_text())
         items.append({"title": title, "expirationdate": deadline})
 

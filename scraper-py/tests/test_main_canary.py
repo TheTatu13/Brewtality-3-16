@@ -36,16 +36,16 @@ def test_all_jobs_invalid_also_raises_canary(monkeypatch, no_api):
 
 def test_valid_jobs_reach_upsert(monkeypatch, no_api):
     monkeypatch.setattr(main, "scrape_careers", lambda: [
-        {"url": "https://www.antibiotice.ro/joburi/specialist-marketing/", "title": "Specialist Marketing"},
+        {"url": "https://jobs.example.com/careers/widget-engineer/", "title": "Widget Engineer"},
     ])
     count = main.run()
     assert count == 1
-    assert len(no_api) == 1 and no_api[0][0]["title"] == "Specialist Marketing"
+    assert len(no_api) == 1 and no_api[0][0]["title"] == "Widget Engineer"
 
 
 def test_dry_run_scrapes_and_validates_but_does_not_upsert(monkeypatch, no_api):
     monkeypatch.setattr(main, "scrape_careers", lambda: [
-        {"url": "https://www.antibiotice.ro/joburi/x/", "title": "X"},
+        {"url": "https://jobs.example.com/careers/x/", "title": "X"},
     ])
     main.run(dry_run=True)
     assert no_api == []

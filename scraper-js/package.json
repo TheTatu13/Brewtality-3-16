@@ -1,5 +1,5 @@
 {
-  "name": "scraper-antibiotice-ro",
+  "name": "scraper-company-template",
   "version": "1.0.0",
   "type": "module",
   "main": "scraper/index.js",

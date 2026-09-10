@@ -70,13 +70,13 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "schedule" ]; then
             echo "Schedule trigger — running LIVE mode..."
-            node --no-deprecation tests/validate-antibiotice-jobs.js --delete
+            node --no-deprecation tests/validate-company-jobs.js --delete
           elif [ "${{ github.event.inputs.dry_run }}" == "true" ]; then
             echo "Running in DRY RUN mode..."
-            node --no-deprecation tests/validate-antibiotice-jobs.js --dry-run
+            node --no-deprecation tests/validate-company-jobs.js --dry-run
           else
             echo "Running in LIVE mode (will delete expired jobs)..."
-            node --no-deprecation tests/validate-antibiotice-jobs.js --delete
+            node --no-deprecation tests/validate-company-jobs.js --delete
           fi
 
   ensure-company-core:
@@ -151,7 +151,7 @@ jobs:
         run: |
           mkdir -p docs/test-results
           npm run test:unit
-          sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Unit Tests — ANTIBIOTICE SA</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Unit Tests — ANTIBIOTICE SA</h1>|' test-report.html
+          sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Unit Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Unit Tests — {{COMPANY_NAME}}</h1>|' test-report.html
           cp test-report.html docs/test-results/pre-scrape-unit.html || true
           
       - name: Upload Unit Test Results
@@ -165,7 +165,7 @@ jobs:
         run: |
           mkdir -p docs/test-results
           npm run test:integration
-          sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Integration Tests — ANTIBIOTICE SA</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Integration Tests — ANTIBIOTICE SA</h1>|' test-report.html
+          sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Integration Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Integration Tests — {{COMPANY_NAME}}</h1>|' test-report.html
           cp test-report.html docs/test-results/pre-scrape-integration.html || true
           
       - name: Upload Integration Test Results
@@ -179,7 +179,7 @@ jobs:
         run: |
           mkdir -p docs/test-results
           npm run test:e2e
-          sed -i 's|<title>Test Report</title>|<title>Post-scrape: E2E Tests — ANTIBIOTICE SA</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: E2E Tests — ANTIBIOTICE SA</h1>|' test-report.html
+          sed -i 's|<title>Test Report</title>|<title>Post-scrape: E2E Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: E2E Tests — {{COMPANY_NAME}}</h1>|' test-report.html
           cp test-report.html docs/test-results/post-scrape.html || true
           
       - name: Upload E2E Test Results
@@ -193,7 +193,7 @@ jobs:
         run: |
           mkdir -p docs/test-results
           npm run test:consistency
-          sed -i 's|<title>Test Report</title>|<title>Post-scrape: Consistency Tests — ANTIBIOTICE SA</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: Consistency Tests — ANTIBIOTICE SA</h1>|' test-report.html
+          sed -i 's|<title>Test Report</title>|<title>Post-scrape: Consistency Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: Consistency Tests — {{COMPANY_NAME}}</h1>|' test-report.html
           cp test-report.html docs/test-results/post-scrape-consistency.html || true
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}

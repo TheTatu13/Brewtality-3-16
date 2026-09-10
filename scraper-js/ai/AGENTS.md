@@ -1,14 +1,17 @@
 # AGENTS.md — Rules for AI agents
 
 ## Project
-Antibiotice scraper for peviitor.ro (Node.js, ESM, Jest)
+The **JS scraper template** (`scraper-js/`) of Brewtality-3-16 — a self-healing
+job scraper for peviitor.ro (Node.js, ESM, Jest).
 
-## 🌱 This Repo Is a Derived Scraper
-This repo is a scraper **derived** from the [EPAM template](https://github.com/sebiboga/epam-systems-international-srl-nodejs-scraper) for **ANTIBIOTICE SA** (CIF: 1973096).
+## 🌱 This is a template
 
-When making changes:
-- **All company-specific identity lives in `scraper/config/company.json`** (id, company, brand, URLs, API params). Read from `scraper/config/company.js` in Node code, or via `jq` in workflows. Never hardcode in source files.
-- **Only the scraping logic in `scraper/index.js`** (`scrapeAntibioticeCareers`, `fetchSitemapJobUrls`, `parseListing`, `searchANOFM`) is source-specific. The output shape (`mapToJobModel`, `transformJobsForSOLR`) must stay uniform across peviitor.ro scrapers.
+The config ships `{{PLACEHOLDER}}` values. To derive a real scraper, copy this
+folder into a new repo and fill them in (see the repo-root `README.md` for the
+placeholder list), then adapt `parseListing` and the selectors.
+
+- **All company identity lives in `scraper/config/company.json` + `scraper/config/scraper.json`** (id, company, brand, URLs, selector cascades, API params). Read from `scraper/config/*.js` in Node code, or via `jq` in workflows. Never hardcode in source files.
+- **Only the scraping logic in `scraper/index.js`** (`scrapeCareers`, `fetchSitemapJobUrls`, `parseListing`, `searchANOFM`) is source-specific. The output shape (`mapToJobModel`, `transformJobsForSOLR`) and the generic modules (`self-healing.js`, `validate.js`) must stay uniform across peviitor.ro scrapers.
 
 ## Self-healing selector cascade
 
@@ -65,7 +68,7 @@ When polling a workflow run with `until [ "$(gh run view ID --json status -q .st
 
 **Always specify the repo explicitly:**
 ```bash
-gh run view <RUN_ID> --repo TheTatu13/antibiotice-sa-nodejs-scraper --json status -q .status
+gh run view <RUN_ID> --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --json status -q .status
 ```
 
 Before starting any `gh run watch` or polling loop in the background, sanity-check:
@@ -113,6 +116,6 @@ npm run test:consistency   # needs GITHUB_REPOSITORY + GITHUB_TOKEN
 See [MAINTENANCE.md](MAINTENANCE.md) for the full maintenance workflow.
 
 **On every session:**
-1. Check open GitHub issues: `gh issue list --repo TheTatu13/antibiotice-sa-nodejs-scraper --state open`
+1. Check open GitHub issues: `gh issue list --repo {{GITHUB_OWNER}}/{{GITHUB_REPO}} --state open`
 2. Prioritize: `critical` → `bug` → `enhancement` → `documentation`
 3. Fix all issues, commit with `#issue` reference, close the issue

@@ -8,7 +8,7 @@
  *   JS-rendered 404 text (Workday SPAs, etc.).
  *
  * Used by:
- *   - tests/validate-epam-jobs.js (CI nightly cleanup) — uses validateByHead
+ *   - tests/validate-company-jobs.js (CI nightly cleanup) — uses validateByHead
  *   - validate-jobs.js (manual deep checks)            — uses validateByContent
  *   - .github/workflows/job-deep-validate.yml (manual)     — uses validateByBrowser
  */

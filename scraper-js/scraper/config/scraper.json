@@ -4,31 +4,17 @@
   "pageDelayMs": 1000,
   "staleJobDeletion": false,
   "manageCompany": false,
-  "defaultLocation": ["Iași"],
+  "defaultLocation": ["{{DEFAULT_CITY}}"],
   "defaultWorkmode": "on-site",
-  "ownJobUrlPrefix": "https://www.antibiotice.ro/joburi/",
+  "ownJobUrlPrefix": "{{JOB_URL_PREFIX}}",
   "sources": {
-    "sitemap": "https://www.antibiotice.ro/joburi-sitemap.xml",
-    "listing": "https://www.antibiotice.ro/cariere/open-position/",
-    "jobArchive": "https://www.antibiotice.ro/joburi/"
+    "sitemap": "{{SITEMAP_URL}}",
+    "listing": "{{CAREER_URL}}",
+    "jobArchive": "{{JOB_URL_PREFIX}}"
   },
   "selectors": {
-    "jobArticle": [
-      "article.job-item",
-      "[class*='job-item']",
-      ".career-item, .job-listing, li.job, .vacancy"
-    ],
-    "jobTitle": [
-      ".header-job h3",
-      "h1, h2, h3, h4",
-      ".job-title, [class*='title']",
-      "[itemprop='title'], [aria-label]",
-      "a[href*='/joburi/']"
-    ],
-    "jobMeta": [
-      "article.job-item > p",
-      ".job-item p, .career-item p",
-      "p, .meta, [class*='deadline'], [class*='data']"
-    ]
+    "jobArticle": ["{{SELECTOR_JOB_ARTICLE}}", "[class*='job']", ".vacancy, .position, .listing-item"],
+    "jobTitle": ["{{SELECTOR_JOB_TITLE}}", "h1, h2, h3, h4", "[itemprop='title'], [aria-label]", "a"],
+    "jobMeta": ["{{SELECTOR_JOB_META}}", "p, .meta, [class*='deadline']"]
   }
 }

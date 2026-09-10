@@ -1,49 +1,59 @@
-[![Oportunitati SI Cariere](https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml/badge.svg)](https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/job-seeker-ro-spider.yml)
-[![Automation Tests](https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/automation-testing.yml/badge.svg)](https://github.com/TheTatu13/antibiotice-sa-nodejs-scraper/actions/workflows/automation-testing.yml)
-[![Version](https://img.shields.io/github/package-json/v/TheTatu13/antibiotice-sa-nodejs-scraper?label=version&color=blue)](CHANGELOG.md)
-[![Test Results](https://img.shields.io/badge/test--results-HTML-9b59b6)](https://TheTatu13.github.io/antibiotice-sa-nodejs-scraper/test-results/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![JavaScript](https://img.shields.io/badge/javascript-ESM-F7DF1E?logo=javascript&logoColor=black)](https://ecma-international.org/)
-[![Node.js](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![Website](https://img.shields.io/website?url=https%3A%2F%2Fpeviitor.ro&label=peviitor.ro)](https://peviitor.ro)
-[![API](https://img.shields.io/website?url=https%3A%2F%2Fapi.peviitor.ro%2F&label=api.peviitor.ro)](https://api.peviitor.ro/)
-[![GitHub Pages](https://img.shields.io/github/deployments/TheTatu13/antibiotice-sa-nodejs-scraper/github-pages?label=GitHub%20Pages)](https://TheTatu13.github.io/antibiotice-sa-nodejs-scraper/)
+# scraper-js — JS scraper template
 
-# job_seeker_ro_spider — Antibiotice Romania Scraper
+The Node.js half of the [Brewtality-3-16](../README.md) self-healing job-scraper
+template for [peviitor.ro](https://peviitor.ro). `node-fetch` + Cheerio, ESM,
+Jest.
 
-**job_seeker_ro_spider** — un scraper pentru job-urile Antibiotice din România. Extrage anunțurile de pe [pagina de carieră Antibiotice](https://www.antibiotice.ro/cariere/open-position/) și de pe [ANOFM](https://mediere.anofm.ro) și le publică în [peviitor.ro](https://peviitor.ro) prin API-ul Peviitor.
+> **This is a template.** `scraper/config/*.json`, `docs/`, `ai/` and the
+> workflows ship `{{PLACEHOLDER}}` values. To make a real scraper, copy this
+> folder into a new repo and replace them — see the [placeholder list](#placeholders).
 
-## Overview
+## What it does (once configured)
 
-Proiectul automatizează colectarea zilnică a job-urilor Antibiotice din România, menținând board-ul peviitor.ro la zi cu cele mai recente oportunități de carieră.
+1. **Validate the company** via the public ANAF API (`demoanaf.ro`) by CIF — name, active/inactive status, address. Cached in `tmp/company.json` (7-day TTL) with a stale-cache fallback.
+2. **Scrape jobs** from the company's own careers listing (HTTP + Cheerio, no browser), reconciled against its job sitemap, plus ANOFM by CIF.
+3. **Self-heal** every field through a selector cascade (primary CSS → fallback CSS → structural / JSON-LD → regex). See [`ai/AGENTS.md`](ai/AGENTS.md).
+4. **Validate + canary** — drop jobs with a bad URL / empty title; abort before any write if the scrape produced nothing.
+5. **Upsert** to the Peviitor API (retry + backoff on transient failures).
+6. **Generate** `docs/jobs.md` and refresh `docs/company.json` for GitHub Pages.
 
-## Features
+## Quick start
 
-- Extrage job-uri de pe site-ul oficial `antibiotice.ro/cariere` (HTTP + Cheerio, fără browser)
-- Reconciliază titlurile din listing cu permalink-urile canonice din `joburi-sitemap.xml`
-- Job-uri ANOFM suplimentare prin CIF
-- Degradare grațioasă — dacă o sursă e indisponibilă, scraper-ul continuă cu celelalte
-- Validează compania via ANAF (CUI, status activ/inactiv, adresă completă)
-- **Cache ANAF la 7 zile** — committed în repo, nu lovește demoANAF la fiecare scrape
-- **Fallback la cache stale** dacă ANAF e indisponibil
-- Cross-validează cu Peviitor API
-- Șterge job-urile stale (de pe site dar nu și în Peviitor)
-- Stochează în Peviitor API (job core + company core)
-- Generează `docs/jobs.md` automat — accesibil pe GitHub Pages
-- **Identitate companie într-un singur fișier** (`scraper/config/company.json`)
-- GitHub Actions: scrape zilnic + testare automată (unit, integration, e2e, consistency)
-- Se identifică prin User-Agent: `job_seeker_ro_spider`
+```bash
+npm install
+npm run test:unit        # 131 tests — pass with placeholders in place
+npm run scrape           # runs the full pipeline (no-op until configured)
+```
+
+## Placeholders
+
+| Placeholder | Fill with |
+|---|---|
+| `{{COMPANY_NAME}}` | legal name, uppercase (e.g. `EXAMPLE COMPANY SRL`) |
+| `{{COMPANY_BRAND}}` | commercial brand |
+| `{{CIF}}` | fiscal code (CUI), no `RO` prefix |
+| `{{WEBSITE_URL}}` | `https://www.example.com` |
+| `{{CAREER_URL}}` | the open-positions listing page |
+| `{{SITEMAP_URL}}` | the job sitemap URL (or `""` if the site has none) |
+| `{{JOB_URL_PREFIX}}` | canonical job-permalink prefix, e.g. `https://www.example.com/jobs/` |
+| `{{DEFAULT_CITY}}` | HQ city (falls back to `România` in the transform) |
+| `{{SELECTOR_JOB_ARTICLE}}` / `{{SELECTOR_JOB_TITLE}}` / `{{SELECTOR_JOB_META}}` | primary CSS selectors for the listing (keep the generic fallbacks after them) |
+| `{{GITHUB_OWNER}}` / `{{GITHUB_REPO}}` | the derived repo's owner / name |
+
+Then adapt `parseListing` and `scrapeCareers` in `scraper/index.js` to the site,
+and add a test per new cascade level.
+
+## Testing
+
+```bash
+npm run test:unit          # always runs (placeholder-safe)
+npm run test:integration   # self-skips until a company is configured + ANAF reachable
+npm run test:e2e           # self-skips until configured; live careers-site + API otherwise
+npm run test:consistency   # needs GITHUB_REPOSITORY + GITHUB_TOKEN (for a derived repo)
+```
 
 ## License
 
-Copyright (c) 2026 TheTatu13
-
-Licensed under the [MIT License](LICENSE).
-
-## Managed By
-
-This project is managed by [ASOCIATIA OPORTUNITATI SI CARIERE](https://oportunitatisicariere.ro) and used as a web scraper for the [peviitor.ro](https://peviitor.ro) job board project.
-
-## Disclaimer
-
-This scraper is designed for educational purposes and legitimate job data aggregation for the Romanian job market.
+MIT — see [LICENSE](LICENSE). Managed by
+[ASOCIATIA OPORTUNITATI SI CARIERE](https://oportunitatisicariere.ro) for the
+[peviitor.ro](https://peviitor.ro) job board.

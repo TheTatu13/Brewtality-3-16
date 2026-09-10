@@ -37,10 +37,10 @@ Pentru fiecare workflow din `.github/workflows/`:
 3. Așteaptă să se termine
 4. Verifică prin API că job-urile companiei apar:
    ```bash
-   curl -s "https://api.peviitor.ro/v1/scraper/jobs/?cif=1973096&rows=10" | jq
+   curl -s "https://api.peviitor.ro/v1/scraper/jobs/?cif={{CIF}}&rows=10" | jq
    ```
 5. Verifică că `docs/jobs.md` a fost generat și este accesibil:
-   - https://TheTatu13.github.io/antibiotice-sa-nodejs-scraper/jobs.md
+   - https://{{GITHUB_OWNER}}.github.io/{{GITHUB_REPO}}/jobs.md
 6. Verifică pe https://peviitor.ro că job-urile sunt vizibile
 
 ## 4. Final
