@@ -5,13 +5,17 @@ Deliberately small; the interesting logic lives in the modules it calls.
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import urlparse
 
 from . import api, fetch
+from . import company as company_validation
 from .config import COMPANY_CIF, OWN_URL_PREFIX, company, scraper
+from .markdown_generator import generate_jobs_markdown
 from .parse import parse_deadline, parse_listing, slugify
 from .validate import assert_scrape_yielded_jobs, filter_valid_jobs
 
@@ -128,6 +132,35 @@ def _to_job_model(raw: dict, cif: str, company_name: str) -> dict:
     return {k: v for k, v in job.items() if v is not None}
 
 
+def _write_docs(company_name: str, cif: str, address: str, jobs: list[dict]) -> None:
+    """docs/jobs.md + docs/company.json -- the GitHub Pages source for this repo."""
+    docs_company_data = {
+        "id": cif,
+        "company": company_name,
+        "brand": company.get("brand"),
+        "status": "activ",
+        "location": [address] if address else company.get("location"),
+        "website": company.get("website"),
+        "career": company.get("career"),
+        "lastScraped": datetime.now(timezone.utc).date().isoformat(),
+    }
+    markdown = generate_jobs_markdown(docs_company_data, jobs)
+
+    docs_dir = Path("docs")
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    (docs_dir / "jobs.md").write_text(markdown, encoding="utf-8")
+    log.info("saved docs/jobs.md")
+
+    # company.json = the static company config + the URL prefix the static page
+    # uses to show only jobs this scraper manages (not eJobs/BestJobs imports
+    # on the same CIF).
+    (docs_dir / "company.json").write_text(
+        json.dumps({**company, "ownJobUrlPrefix": OWN_URL_PREFIX}, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    log.info("wrote docs/company.json (+ ownJobUrlPrefix)")
+
+
 def run(*, dry_run: bool = False) -> int:
     log.info("=== Step 1: existing jobs in SOLR ===")
     existing = api.query_solr(COMPANY_CIF)
@@ -135,26 +168,74 @@ def run(*, dry_run: bool = False) -> int:
     own_existing = {d["url"] for d in existing["docs"] if _is_own(d["url"])}
     log.info("SOLR has %d jobs for this CIF (%d ours)", existing["numFound"], len(own_existing))
 
-    log.info("=== Step 2: scrape ===")
+    log.info("=== Step 2: validate company via ANAF ===")
+    validated = company_validation.validate_and_get_company()
+    company_name = validated["company"]
+    cif = validated["cif"]
+    address = validated.get("address") or ""
+
+    if validated["status"] == "inactive":
+        log.warning("company is INACTIVE -- removing only our own jobs, skipping scrape.")
+        for url in own_existing:
+            try:
+                api.delete_job_by_url(url)
+            except Exception as exc:  # noqa: BLE001 - best-effort cleanup, one bad URL shouldn't abort the rest
+                log.warning("delete failed: %s -- %s", url, exc)
+        return 0
+
+    if scraper.get("manageCompany"):
+        try:
+            api.upsert_company({
+                "id": cif,
+                "company": company_name,
+                "brand": company.get("brand"),
+                "status": "activ",
+                "location": [address] if address else scraper["defaultLocation"],
+                "website": company.get("website"),
+                "career": company.get("career"),
+                "lastScraped": datetime.now(timezone.utc).date().isoformat(),
+            })
+        except Exception as exc:  # noqa: BLE001 - non-fatal, matches the JS template
+            log.info("could not upsert company: %s", exc)
+    else:
+        log.info("manageCompany=false -- leaving company core untouched (owned by another scraper on this CIF)")
+
+    log.info("=== Step 3: scrape ===")
     raw_jobs = scrape_careers()
 
     assert_scrape_yielded_jobs(raw_jobs)  # canary
     valid_jobs, _ = filter_valid_jobs(raw_jobs)
     assert_scrape_yielded_jobs(valid_jobs)  # everything failed validation -> also a canary
 
-    company_name = company["company"]
-    jobs = [_to_job_model(j, COMPANY_CIF, company_name) for j in valid_jobs]
+    jobs = [_to_job_model(j, cif, company_name) for j in valid_jobs]
 
-    log.info("=== Step 3: upsert ===")
+    log.info("=== Step 4: upsert ===")
     if dry_run:
-        log.info("dry-run — would upsert %d jobs", len(jobs))
+        log.info("dry-run -- would upsert %d jobs", len(jobs))
     else:
         api.upsert_jobs(jobs)
+
+    _write_docs(company_name, cif, address, jobs)
 
     scraped_urls = {j["url"] for j in jobs}
     added = sorted(scraped_urls - all_existing)
     updated = sorted(scraped_urls & all_existing)
     gone = sorted(own_existing - scraped_urls)
+
+    if scraper["staleJobDeletion"]:
+        if gone:
+            log.info("=== Step 4.5: delete %d stale job(s) (ours only) ===", len(gone))
+            for url in gone:
+                try:
+                    log.info("  deleting: %s", url)
+                    if not dry_run:
+                        api.delete_job_by_url(url)
+                except Exception as exc:  # noqa: BLE001 - one failed delete shouldn't abort the rest
+                    log.warning("  failed to delete: %s -- %s", url, exc)
+        else:
+            log.info("no stale jobs to delete")
+    else:
+        log.info("step 4.5 skipped -- staleJobDeletion=false (coexistence with other scrapers on this CIF)")
 
     log.info("=== SUMMARY ===")
     log.info("scraped this run:            %d", len(jobs))

@@ -1,0 +1,11 @@
+{
+  "id": "{{CIF}}",
+  "company": "{{COMPANY_NAME}}",
+  "brand": "{{COMPANY_BRAND}}",
+  "status": "activ",
+  "location": ["{{DEFAULT_CITY}}"],
+  "website": ["{{WEBSITE_URL}}"],
+  "career": ["{{CAREER_URL}}"],
+  "scraperFile": "https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml",
+  "ownJobUrlPrefix": "{{JOB_URL_PREFIX}}"
+}

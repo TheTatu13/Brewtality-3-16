@@ -16,6 +16,8 @@ dependencies = [
 [project.optional-dependencies]
 # Optional adaptive-selector layer. See ai/SELF-HEALING.md.
 adaptive = ["scrapling>=0.2"]
+# Optional headless-browser job validation. See scraper/job_validator.py.
+browser = ["playwright>=1.40"]
 dev = ["pytest>=8.0", "requests-mock>=1.11"]
 
 [tool.setuptools]

@@ -3,16 +3,23 @@ scrapes nothing (or nothing survives validation)."""
 
 import pytest
 
-from scraper import api, main
+from scraper import api, company as company_validation, main
 from scraper.validate import CanaryError
 
 
 @pytest.fixture
-def no_api(monkeypatch):
-    """Stub the API so a test never touches the network, and record upserts."""
+def no_api(monkeypatch, tmp_path):
+    """Stub the API/ANAF so a test never touches the network, record upserts,
+    and run inside a throwaway directory (run() writes docs/jobs.md + company.json)."""
+    monkeypatch.chdir(tmp_path)
     upserts = []
     monkeypatch.setattr(api, "query_solr", lambda cif: {"numFound": 0, "docs": []})
     monkeypatch.setattr(api, "upsert_jobs", lambda jobs: upserts.append(jobs))
+    monkeypatch.setattr(
+        company_validation,
+        "validate_and_get_company",
+        lambda: {"status": "active", "company": "EXAMPLE CO", "cif": "12345678", "address": ""},
+    )
     return upserts
 
 

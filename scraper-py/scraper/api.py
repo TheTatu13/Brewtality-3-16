@@ -57,3 +57,36 @@ def delete_job_by_url(url: str) -> None:
         return
     if not resp.ok:
         raise RuntimeError(f"API jobs delete error: {resp.status_code} - {resp.text}")
+
+
+def delete_jobs_by_cif(cif: str | int) -> None:
+    """Delete every job under a CIF (used only when ANAF reports the company inactive)."""
+    resp = fetch.request(
+        "DELETE",
+        f"{API_BASE}/cleanjobs/",
+        label="jobs delete by cif",
+        headers={"Content-Type": "application/json"},
+        data=json.dumps({"cif": pad_cif(cif)}),
+    )
+    if resp.status_code == 404:
+        return
+    if not resp.ok:
+        raise RuntimeError(f"API jobs delete-by-cif error: {resp.status_code} - {resp.text}")
+
+
+def upsert_company(company_doc: dict) -> None:
+    """PUT a company record to peviitor's index (``firme/company/add``)."""
+    payload = {**company_doc, "id": pad_cif(company_doc["id"])}
+    resp = fetch.request(
+        "PUT",
+        f"{API_BASE}/firme/company/add/",
+        label="company upsert",
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(payload),
+    )
+    if not resp.ok:
+        raise RuntimeError(f"API company upsert error: {resp.status_code} - {resp.text}")
+    data = resp.json()
+    if not data.get("success"):
+        raise RuntimeError(f"API company upsert failed: {data}")
+    log.info('company "%s" upserted via API', company_doc.get("company"))
