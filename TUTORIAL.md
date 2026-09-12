@@ -54,6 +54,7 @@ Brewtality-3-16 - derive a scraper
   CIF / CUI (digits only, no RO prefix) (required): 12345678
   Company website (https://...) (required): https://www.acmewidgets.ro
   Careers / open-positions page URL (required): https://www.acmewidgets.ro/cariere
+  Try to auto-detect a CSS selector for job cards by fetching this page now? (y/N):
   Job sitemap URL (Enter if the site has none) (optional, Enter to skip):
   Canonical job-permalink prefix [https://www.acmewidgets.ro/jobs/]:
   HQ city (required): Cluj-Napoca
@@ -86,12 +87,14 @@ Brewtality-3-16 - derive a scraper
 
   Apply? This rewrites the repo in place and cannot be undone. (y/N): y
 
+  -> fresh git repo initialised on branch 'main'.
+
   OK - Scraper generated for ACME WIDGETS SRL in JavaScript.
     package/module name: acme-widgets-scraper
     intended repo:       github.com/acme-dev/acme-widgets-nodejs-scraper
 
   Ready for the first commit:
-    git init && git add -A && git commit -m "Initial scraper for ACME WIDGETS SRL"
+    git add -A && git commit -m "Initial scraper for ACME WIDGETS SRL"
     gh repo create acme-dev/acme-widgets-nodejs-scraper --public --source=. --push
 
   Next: tune the selectors in scraper/config/scraper.json
@@ -110,21 +113,35 @@ A few notes on the prompts, in case your answers differ from the example:
   fallback cascade instead of a tuned primary selector (see
   [README.md → The self-healing cascade](README.md#the-self-healing-cascade)).
   You can fill those in later, once you've inspected the real page.
+- **Auto-detect a CSS selector**, right after the careers URL, is also
+  optional. Say `y` and the script does a quick, read-only fetch of that page,
+  looks for a repeated class name containing a job-ish keyword (`job`,
+  `position`, `career`, `vacan…`, …) or, failing that, repeated `<article>`
+  tags, and proposes it as the primary job-card selector — you accept or
+  reject it right there. Say `N` (or just Enter) and nothing is fetched; the
+  later "Primary selector for one job card/row" prompt behaves exactly as
+  before.
 - Answering anything other than `js`/`py`/`1`/`2` at the first prompt just
   re-asks it; answering anything other than `y`/`yes` at the final confirm
   aborts with `Aborted - nothing changed.` and leaves the clone untouched.
+- If your clone is a linked **git worktree** (`.git` is a pointer file, not a
+  directory) rather than a plain clone, the script says so up front. It's
+  handled automatically — see Step 5, no different behaviour needed from you.
 
 ## Step 3 — what just happened
 
 The script rewrote the clone **in place**:
 
 - deleted `scraper-py/` (the variant you didn't pick);
+- deleted `setup.js`, `setup.py`, the template's own `README.md` and
+  `CLAUDE.md`, and the template's `.git` history — then immediately ran
+  `git init` and pointed `HEAD` at `refs/heads/main`, so the folder has its
+  own fresh, independent repository from this point on, on branch `main`
+  regardless of your global git config (see Step 5);
 - moved everything from `scraper-js/` up to the repo root, then removed the
   now-empty `scraper-js/` folder;
 - replaced every `{{PLACEHOLDER}}` across the tree with your answers;
-- set `"name"` in `package.json` to `acme-widgets-scraper`;
-- deleted `setup.js`, `setup.py`, the template's own `README.md` and
-  `CLAUDE.md`, and the template's `.git` history.
+- set `"name"` in `package.json` to `acme-widgets-scraper`.
 
 Your working directory now looks like a plain `scraper-js/` project promoted to
 the repo root — `scraper/`, `tests/`, `ai/`, `docs/`, `package.json`, its own
@@ -178,8 +195,12 @@ in Step 2) and the site/API are reachable from wherever you run them.
 
 ## Step 5 — your first commit
 
+The derivation script already ran `git init` for you (that's the
+`-> fresh git repo initialised on branch 'main'.` line in Step 2) and forced
+the branch name to `main` — no need to run `git init` yourself, and no
+`master`-vs-`main` guessing based on your local git config. Just:
+
 ```bash
-git init
 git add -A
 git commit -m "Initial scraper for ACME WIDGETS SRL"
 ```
@@ -187,7 +208,7 @@ git commit -m "Initial scraper for ACME WIDGETS SRL"
 ```
 $ git add -A
 $ git commit -m "Initial scraper for ACME WIDGETS SRL"
-[master (root-commit) 4acdc48] Initial scraper for ACME WIDGETS SRL
+[main (root-commit) 4acdc48] Initial scraper for ACME WIDGETS SRL
  66 files changed, 14618 insertions(+)
  create mode 100644 .github/workflows/job-seeker-ro-spider.yml
  create mode 100644 ai/AGENTS.md
@@ -197,8 +218,9 @@ $ git commit -m "Initial scraper for ACME WIDGETS SRL"
  ...
 ```
 
-(File/line counts and the default branch name — `master` vs. `main` — depend
-on your local `git` version and config; don't worry if yours differ slightly.)
+(File/line counts will vary slightly across versions of this template; the
+branch is always `main`, regardless of your local git version or config — see
+[ai/BRANCH.md](scraper-js/ai/BRANCH.md) / the Python variant's copy.)
 
 ## Step 6 — optional: create the GitHub repo and push
 

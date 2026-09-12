@@ -90,19 +90,27 @@ Either script does the same thing. It asks:
 
 1. **JavaScript or Python?** — type `js` / `py` (or `1` / `2`).
 2. Then, one prompt at a time: the company legal name, brand, CIF, website,
-   careers-page URL, job sitemap URL (optional), job-permalink prefix, HQ city,
+   careers-page URL, an optional CSS-selector auto-detect probe (fetches the
+   careers page and proposes a candidate job-card selector for you to accept
+   or reject), job sitemap URL (optional), job-permalink prefix, HQ city,
    the three primary CSS selectors (optional — Enter to keep only the generic
-   fallbacks), and the GitHub owner / repo name.
+   fallbacks, or the auto-detected one if you accepted it), and the GitHub
+   owner / repo name.
 3. It prints a **summary** and asks for confirmation.
 
 On confirm it rewrites the clone **in place**:
 
 - deletes the language folder you didn't pick;
-- promotes the one you did pick to the repo root;
+- deletes both `setup.*` scripts and the template's `.git` history, then
+  immediately re-initialises a fresh, independent git repo on branch `main`
+  (forced explicitly — never depends on your `init.defaultBranch` config).
+  If the clone was a linked `git worktree` rather than a plain clone, this is
+  what keeps the new repo from silently falling through to the worktree's
+  parent repository once the old `.git` is gone;
+- promotes the language folder you did pick to the repo root;
 - fills every `{{PLACEHOLDER}}` with your answers;
 - sets the package/module name to `<company-slug>-scraper`
-  (`package.json` / `pyproject.toml`);
-- deletes both `setup.*` scripts and the template's `.git` history.
+  (`package.json` / `pyproject.toml`).
 
 At the end it prints exactly what's left to do:
 
@@ -112,7 +120,7 @@ OK - scraper generated for ACME WIDGETS SRL in JavaScript.
   intended repo:       github.com/acme-dev/acme-widgets-nodejs-scraper
 
 Ready for the first commit:
-  git init && git add -A && git commit -m "Initial scraper for ACME WIDGETS SRL"
+  git add -A && git commit -m "Initial scraper for ACME WIDGETS SRL"
   gh repo create acme-dev/acme-widgets-nodejs-scraper --public --source=. --push
 
 Next: tune the selectors in scraper/config/scraper.json

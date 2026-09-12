@@ -54,7 +54,9 @@ jobs:
           python-version: '3.12'
       - name: Derive (${{ matrix.lang }})
         run: |
-          ANSWERS='${{ matrix.lang }}\nSMOKE TEST SRL\nSmoke\n99999999\nhttps://smoke.example\nhttps://smoke.example/careers/\n\n\nCluj-Napoca\n\n\n\nsmoke-org\n\ny\n'
+          # blank line after the careers URL answers "no" to the new
+          # auto-detect-a-selector prompt, keeping this run hermetic/offline.
+          ANSWERS='${{ matrix.lang }}\nSMOKE TEST SRL\nSmoke\n99999999\nhttps://smoke.example\nhttps://smoke.example/careers/\n\n\n\nCluj-Napoca\n\n\n\nsmoke-org\n\ny\n'
           if [ "${{ matrix.lang }}" = "js" ]; then printf "$ANSWERS" | node setup.js; else printf "$ANSWERS" | python setup.py; fi
       - name: Test the derived scraper (JS)
         if: matrix.lang == 'js'
@@ -62,3 +64,46 @@ jobs:
       - name: Test the derived scraper (Python)
         if: matrix.lang == 'py'
         run: pip install -e ".[dev]" && pytest -q
+
+  # Regression test for the worktree bug: deriving from inside a linked `git
+  # worktree` (not a plain clone) must NOT leave the folder falling through to
+  # the parent repository once .git is removed. Asserts the derived scraper
+  # ends up as its own independent repo, on `main`, regardless of the runner's
+  # global git config.
+  derive-smoke-worktree:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lang: [js, py]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Force a non-`main` default branch name, to prove the fix ignores it
+        run: git config --global init.defaultBranch not-main
+      - name: Create a linked worktree (the scenario the bug was found in)
+        run: git worktree add -b wt-derive ../wt-checkout HEAD
+      - name: Derive (${{ matrix.lang }}) from inside the worktree
+        working-directory: ../wt-checkout
+        run: |
+          ANSWERS='${{ matrix.lang }}\nSMOKE TEST SRL\nSmoke\n99999999\nhttps://smoke.example\nhttps://smoke.example/careers/\n\n\n\nCluj-Napoca\n\n\n\nsmoke-org\n\ny\n'
+          if [ "${{ matrix.lang }}" = "js" ]; then printf "$ANSWERS" | node setup.js; else printf "$ANSWERS" | python setup.py; fi
+      - name: Assert the derived scraper is its own independent repo on `main`
+        working-directory: ../wt-checkout
+        run: |
+          toplevel=$(git rev-parse --show-toplevel)
+          expected=$(cd . && pwd)
+          if [ "$toplevel" != "$expected" ]; then
+            echo "FAIL: derived scraper's git toplevel is '$toplevel', expected '$expected' -- it fell through to a parent repo"
+            exit 1
+          fi
+          branch=$(git branch --show-current)
+          if [ "$branch" != "main" ]; then
+            echo "FAIL: derived scraper's default branch is '$branch', expected 'main'"
+            exit 1
+          fi
+          echo "OK: independent repo on branch 'main'"
