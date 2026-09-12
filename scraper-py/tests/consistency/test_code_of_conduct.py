@@ -3,7 +3,8 @@
 Genericised from the Python reference template's version (drops the
 "Asociația Oportunități și Cariere"-specific values/contact assertions --
 those are meaningful only for a derived, community-run repo, not this
-template). Asserts the document stays a full Contributor Covenant 2.1.
+template). Asserts the document stays a full Contributor Covenant 2.0
+(matching the version already shipped in scraper-js's own CODE_OF_CONDUCT.md).
 
 Soft-skips until CODE_OF_CONDUCT.md is added (compliance-audit Group 4);
 once it exists, every assertion below runs for real.
@@ -43,4 +44,4 @@ def test_code_of_conduct_required_sections():
 def test_code_of_conduct_attribution():
     coc = _code_of_conduct()
     assert "Contributor Covenant" in coc, "CODE_OF_CONDUCT.md must credit the Contributor Covenant"
-    assert "2.1" in coc, "CODE_OF_CONDUCT.md must state the adapted version"
+    assert "2.0" in coc, "CODE_OF_CONDUCT.md must state the adapted version"
