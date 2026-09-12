@@ -81,6 +81,11 @@ cd my-company-scraper
 node setup.js       # …or:  python setup.py   — pick whichever you have
 ```
 
+For a full walkthrough with real terminal output and a complete example
+session, see [TUTORIAL.md](TUTORIAL.md). For ready-to-use agent prompts for
+each stage (checking a target company, deriving, pushing, diagnosing CI,
+verifying self-healing), see [ai/PROMPTS.md](ai/PROMPTS.md).
+
 Either script does the same thing. It asks:
 
 1. **JavaScript or Python?** — type `js` / `py` (or `1` / `2`).
