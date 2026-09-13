@@ -7,7 +7,10 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
+import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -20,6 +23,12 @@ from .parse import parse_deadline, parse_listing, slugify
 from .validate import assert_scrape_yielded_jobs, filter_valid_jobs
 
 log = logging.getLogger("scraper.main")
+
+# Collapsed to ~0 under pytest, same trick as scraper.fetch's own retry delays --
+# PYTEST_CURRENT_TEST is only set during the call phase, but "pytest" is already
+# imported by the time any test module runs, so this is reliable at import time.
+_IS_TEST = "pytest" in sys.modules or bool(os.environ.get("PYTEST_CURRENT_TEST"))
+_SOLR_SETTLE_DELAY_SEC = 0.001 if _IS_TEST else 2.0
 
 _LOC_RX = re.compile(r"<loc>\s*([^<\s]+)\s*</loc>")
 
@@ -237,6 +246,13 @@ def run(*, dry_run: bool = False) -> int:
     else:
         log.info("step 4.5 skipped -- staleJobDeletion=false (coexistence with other scrapers on this CIF)")
 
+    # Give SOLR a moment to settle, then re-query for real -- the summary below
+    # must reflect confirmed post-write state, not just what we intended to
+    # upsert. A silently-failed or partially-applied write would otherwise be
+    # reported as a success.
+    time.sleep(_SOLR_SETTLE_DELAY_SEC)
+    final = api.query_solr(COMPANY_CIF)
+
     log.info("=== SUMMARY ===")
     log.info("scraped this run:            %d", len(jobs))
     log.info("  new (not in SOLR before): %d", len(added))
@@ -245,6 +261,7 @@ def run(*, dry_run: bool = False) -> int:
              " — kept (staleJobDeletion=false)" if gone and not scraper["staleJobDeletion"] else "")
     for u in gone[:10]:
         log.info("    - %s", u)
+    log.info("jobs in SOLR after scrape:    %d", final["numFound"])
     return len(jobs)
 
 

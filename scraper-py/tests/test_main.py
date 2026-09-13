@@ -148,3 +148,38 @@ def test_successful_run_writes_docs_jobs_md_and_company_json(monkeypatch, isolat
     company_json = json.loads(Path("docs/company.json").read_text(encoding="utf-8"))
     assert "ownJobUrlPrefix" in company_json
     assert company_json["ownJobUrlPrefix"] == scraper["ownJobUrlPrefix"]
+
+
+def test_summary_reflects_confirmed_post_upload_solr_state_not_local_estimate(monkeypatch, isolated, caplog):
+    """The whole point of the re-query: if the real, confirmed SOLR count after
+    the write differs from what we locally assumed we just upserted, the
+    printed summary must show the confirmed number, not the optimistic one."""
+    monkeypatch.setattr(company_validation, "validate_and_get_company", lambda: _active())
+    monkeypatch.setattr(main, "scrape_careers", lambda: [
+        {"url": "https://jobs.example.com/careers/widget-engineer/", "title": "Widget Engineer"},
+    ])
+    responses = iter([
+        {"numFound": 0, "docs": []},   # Step 1: nothing in SOLR yet
+        {"numFound": 5, "docs": []},   # final re-query: only 5 confirmed, not the 1 we scraped
+    ])
+    monkeypatch.setattr(api, "query_solr", lambda cif: next(responses))
+
+    with caplog.at_level("INFO", logger="scraper.main"):
+        main.run()
+
+    assert "jobs in SOLR after scrape:    5" in caplog.text
+    with pytest.raises(StopIteration):
+        next(responses)  # exactly two query_solr calls were made, no more
+
+
+def test_run_sleeps_before_the_final_reverification_query(monkeypatch, isolated):
+    monkeypatch.setattr(company_validation, "validate_and_get_company", lambda: _active())
+    monkeypatch.setattr(main, "scrape_careers", lambda: [
+        {"url": "https://jobs.example.com/careers/widget-engineer/", "title": "Widget Engineer"},
+    ])
+    slept = []
+    monkeypatch.setattr(main.time, "sleep", lambda secs: slept.append(secs))
+
+    main.run()
+
+    assert slept == [main._SOLR_SETTLE_DELAY_SEC]
