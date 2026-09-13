@@ -12,7 +12,7 @@
  *   --dry-run   Show invalid jobs but do not delete
  *   --delete    Delete invalid jobs from SOLR after listing
  *
- * Called nightly by .github/workflows/automation-testing.yml and manually via
+ * Called nightly by .github/workflows/tests.yml and manually via
  * .github/workflows/job-deep-validate.yml (--content mode).
  */
 import companyConfig from "../scraper/config/company.js";

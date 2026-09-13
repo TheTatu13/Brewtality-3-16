@@ -30,7 +30,7 @@
 |------|-------------|
 | `tests/package.json` | Jest config for test suite - experimental VM modules, test scripts (unit/integration/e2e/consistency) |
 | `tests/company.json` | Mock company data used in unit tests |
-| `tests/validate-company-jobs.js` | **Company-specific validator (used by CI).** Modes: `--head` (default), `--content`. Called nightly by `automation-testing.yml` and manually via `job-deep-validate.yml`. Supports `--dry-run` and `--delete`. |
+| `tests/validate-company-jobs.js` | **Company-specific validator (used by CI).** Modes: `--head` (default), `--content`. Called nightly by `tests.yml` and manually via `job-deep-validate.yml`. Supports `--dry-run` and `--delete`. |
 | `tests/unit/index.test.js` | Unit tests for index.js - slugify, parseDeadline, matchSitemapUrl, parseListing, mapToJobModel, transformJobsForSOLR |
 | `tests/unit/company.test.js` | Unit tests for company.js - getCompanyBrand, validateAndGetCompany, fallback caching |
 | `tests/unit/api.test.js` | Unit tests for api.js - query, upsert, delete, HTTP error handling |
@@ -79,8 +79,8 @@
 | `CHANGELOG.md` | Version history and notable changes |
 | `CONTRIBUTING.md` | Contribution guidelines |
 | `.github/CODEOWNERS` | Code ownership rules for PR reviews |
-| `.github/workflows/job-seeker-ro-spider.yml` | Daily scraping workflow (6 AM UTC) |
-| `.github/workflows/automation-testing.yml` | Automated tests on every push/PR |
+| `.github/workflows/scrape.yml` | Daily scraping workflow (6 AM UTC) |
+| `.github/workflows/tests.yml` | Automated tests on every push/PR |
 | `.github/workflows/job-deep-validate.yml` | Manual deep validation (content mode — GET + body scan) |
 | `.github/workflows/automation-template-sync-check.yml` | Weekly check that derived scrapers are up to date with this template |
 | `.github/workflows/job-recovery-from-disaster.yml` | Manual: restores the company core entry from `scraper/config/company.json` |

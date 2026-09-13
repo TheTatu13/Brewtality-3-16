@@ -19,8 +19,8 @@ Pentru fiecare workflow din `.github/workflows/`:
 
 | Workflow | Trigger | Ce verifici |
 |----------|---------|-------------|
-| `job-seeker-ro-spider.yml` | `workflow_dispatch` | Rulează scraperul → jobs in API + docs/jobs.md generat |
-| `automation-testing.yml` | `workflow_dispatch` | Toate testele + validare job-uri + company core |
+| `scrape.yml` | `workflow_dispatch` | Rulează scraperul → jobs in API + docs/jobs.md generat |
+| `tests.yml` | `workflow_dispatch` | Toate testele + validare job-uri + company core |
 
 ### Cum verifici:
 
@@ -32,7 +32,7 @@ Pentru fiecare workflow din `.github/workflows/`:
 
 ## 3. Rulează scraperul prin GitHub Actions (ultimul pas)
 
-1. Mergi la **Actions** → **Oportunitati SI Cariere** (`job-seeker-ro-spider.yml`)
+1. Mergi la **Actions** → **Scrape** (`scrape.yml`)
 2. Apasă **Run workflow** → lasă `main`
 3. Așteaptă să se termine
 4. Verifică prin API că job-urile companiei apar:

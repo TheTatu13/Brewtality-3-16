@@ -6,5 +6,5 @@
   "location": ["{{DEFAULT_CITY}}"],
   "website": ["{{WEBSITE_URL}}"],
   "career": ["{{CAREER_URL}}"],
-  "scraperFile": "https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/job-seeker-ro-spider.yml"
+  "scraperFile": "https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml"
 }

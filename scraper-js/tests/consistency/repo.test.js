@@ -7,7 +7,7 @@ import companyConfig from "../../scraper/config/company.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = process.env.GITHUB_REPOSITORY;
 const TOKEN = process.env.GITHUB_TOKEN;
-const SCRAPER_YML = ".github/workflows/job-seeker-ro-spider.yml";
+const SCRAPER_YML = ".github/workflows/scrape.yml";
 
 
 function repoUrl(apiPath) {
@@ -83,11 +83,11 @@ describe("Repository Configuration", () => {
   });
 
   describe("workflow files", () => {
-    it("must have job-seeker-ro-spider.yml", () => {
+    it("must have scrape.yml", () => {
       const ymlPath = path.resolve(__dirname, "../..", SCRAPER_YML);
       expect(fs.existsSync(ymlPath)).toBe(true);
       const content = fs.readFileSync(ymlPath, "utf-8");
-      expect(content).toContain("name: Oportunitati SI Cariere");
+      expect(content).toContain("name: Scrape");
       expect(content).toContain("schedule");
       expect(content).toContain("workflow_dispatch");
       console.log(`✅ ${SCRAPER_YML} exists with expected content`);

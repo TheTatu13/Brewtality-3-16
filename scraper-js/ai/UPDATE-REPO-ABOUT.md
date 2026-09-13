@@ -8,4 +8,4 @@ Scraper automat pentru locurile de muncă {{COMPANY_NAME}} (CIF: {{CIF}}) — ex
 - peviitor-ro
 
 ## Workflow file
-`.github/workflows/job-seeker-ro-spider.yml`
+`.github/workflows/scrape.yml`
