@@ -137,14 +137,19 @@ def scrape_careers() -> list[dict]:
 
 
 def _drop_dead_urls(jobs: list[dict]) -> list[dict]:
-    """Pre-upload safety net: HEAD-check every job URL and drop the ones that
+    """Pre-upload safety net: GET-check every job URL and drop the ones that
     don't resolve. ``validate.py`` only checks URL *shape* (a syntactically
     valid http(s) URL); job_validator.py can actually tell a live job from a
     404, but nothing called it before an upload -- this is what let a
-    URL-construction bug reach peviitor undetected."""
+    URL-construction bug reach peviitor undetected.
+
+    Uses ``validate_by_content`` (GET), not ``validate_by_head``: at least one
+    real careers site (Workday-based) answers every HEAD request with a
+    generic 404 regardless of whether the resource exists (`Allow: GET` in
+    the response) -- HEAD-only would have dropped every real job."""
     alive: list[dict] = []
     for job in jobs:
-        result = job_validator.validate_by_head(job["url"])
+        result = job_validator.validate_by_content(job["url"])
         if result["status"] == "active":
             alive.append(job)
         else:

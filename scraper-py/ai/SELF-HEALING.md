@@ -90,11 +90,14 @@ no anchor at all. A slug guessed from the title can never reproduce a
 permalink that embeds an ID (`/jobs/jr133930/software-architect/`), which is
 exactly what silently sent 404ing URLs to peviitor before this field existed.
 
-As a second, independent safety net, `main.py::run()` HEAD-checks every job
-URL via `job_validator.validate_by_head()` right before upload
+As a second, independent safety net, `main.py::run()` GET-checks every job
+URL via `job_validator.validate_by_content()` right before upload
 (`_drop_dead_urls`) and drops whatever doesn't resolve — `validate_job` only
 checks URL *shape* (a syntactically valid http(s) string), it was never able
-to catch a 404.
+to catch a 404. `validate_by_content`, not `validate_by_head`: at least one
+real careers site (Workday-based) answers *every* HEAD request with a generic
+404 regardless of whether the resource exists — HEAD-only would have dropped
+every real job.
 
 ## Validation & canary (`scraper/validate.py`)
 

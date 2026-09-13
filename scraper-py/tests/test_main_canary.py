@@ -16,7 +16,7 @@ def no_api(monkeypatch, tmp_path):
     monkeypatch.setattr(api, "query_solr", lambda cif: {"numFound": 0, "docs": []})
     monkeypatch.setattr(api, "upsert_jobs", lambda jobs: upserts.append(jobs))
     monkeypatch.setattr(
-        job_validator, "validate_by_head",
+        job_validator, "validate_by_content",
         lambda url, **kw: {"url": url, "status": "active", "httpStatus": 200, "title": None, "error": None},
     )
     monkeypatch.setattr(

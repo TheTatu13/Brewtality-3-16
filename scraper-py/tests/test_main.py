@@ -25,7 +25,7 @@ def isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(api, "query_solr", lambda cif: {"numFound": 0, "docs": []})
     monkeypatch.setattr(api, "upsert_jobs", lambda jobs: None)
     monkeypatch.setattr(
-        job_validator, "validate_by_head",
+        job_validator, "validate_by_content",
         lambda url, **kw: {"url": url, "status": "active", "httpStatus": 200, "title": None, "error": None},
     )
     return tmp_path
@@ -243,11 +243,11 @@ class TestScrapeCareersUrlSelection:
 
 class TestDropDeadUrls:
     def test_keeps_active_and_drops_expired_or_erroring(self, monkeypatch):
-        def fake_head(url, **kw):
+        def fake_content_check(url, **kw):
             status = "active" if "good" in url else "expired"
             return {"url": url, "status": status, "httpStatus": 200 if status == "active" else 404, "title": None, "error": None}
 
-        monkeypatch.setattr(job_validator, "validate_by_head", fake_head)
+        monkeypatch.setattr(job_validator, "validate_by_content", fake_content_check)
 
         jobs = [
             {"url": "https://x/good/", "title": "Good"},
@@ -265,7 +265,7 @@ class TestDropDeadUrls:
             {"url": "https://jobs.example.com/careers/widget-engineer/", "title": "Widget Engineer"},
         ])
         monkeypatch.setattr(
-            job_validator, "validate_by_head",
+            job_validator, "validate_by_content",
             lambda url, **kw: {"url": url, "status": "expired", "httpStatus": 404, "title": None, "error": None},
         )
         calls = []
