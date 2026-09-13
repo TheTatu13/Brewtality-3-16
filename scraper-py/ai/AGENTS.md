@@ -37,6 +37,14 @@ Full detail, JS↔Python parity table, and Scrapling notes: **[SELF-HEALING.md](
 2. **Canary.** `assert_scrape_yielded_jobs` runs before any write. Do not weaken it.
 3. **Validation.** New scraped fields go through `validate_job`; extend its rules, don't bypass.
 4. **Retry.** All outbound HTTP goes through `scraper/fetch.py` (retry + backoff). Don't call `requests` directly from `parse.py` / `api.py`.
+   **Deliberate exception:** `anaf.py`, `company.py`, and `job_validator.py` call
+   `requests` directly, bypassing `fetch.py`. This is intentional, not an
+   oversight — it mirrors the JS template's `anaf.js` (which documents itself as
+   "1 try demoanaf.ro → 1 try cuiscan.ro → cached data. No retries."): ANAF/
+   CUIScan/CUIFirma get exactly one attempt per source before the cascade falls
+   through to the next one, and retrying each source with `fetch.py`'s backoff
+   would multiply that latency for no benefit. Don't "fix" this by routing them
+   through `fetch.py` without re-checking that design intent first.
 5. **Temp files** in `tmp/` only (gitignored).
 6. **Never commit credentials** (`.env.local`, API keys).
 7. **Scrapling is optional** — code must run and tests must pass without it installed.
