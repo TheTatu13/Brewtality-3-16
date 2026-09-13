@@ -258,19 +258,13 @@
         <img src="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/tests.yml/badge.svg" alt="Tests Status">
       </a>
       <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/blob/main/CHANGELOG.md" target="_blank">
-        <img src="https://img.shields.io/github/package-json/v/{{GITHUB_OWNER}}/{{GITHUB_REPO}}?label=version&color=blue" alt="Version">
+        <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="Version">
       </a>
       <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/blob/main/LICENSE" target="_blank">
         <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
       </a>
-      <a href="https://ecma-international.org/" target="_blank">
-        <img src="https://img.shields.io/badge/javascript-ESM-F7DF1E?logo=javascript&logoColor=black" alt="JavaScript ESM">
-      </a>
-      <a href="https://nodejs.org/" target="_blank">
-        <img src="https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white" alt="Node.js 24">
-      </a>
-      <a href="test-results/" target="_blank">
-        <img src="https://img.shields.io/badge/test--results-HTML-9b59b6" alt="Test Results">
+      <a href="https://www.python.org/" target="_blank">
+        <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white" alt="Python 3.10+">
       </a>
     </div>
 
@@ -300,8 +294,8 @@
     <div class="card-header" data-i18n="aboutTitle">Despre acest scraper</div>
     <div class="card-body">
       <ul class="features-list" data-i18n="featuresList">
-        <li data-i18n="f1">Extrage job-uri de pe site-ul de carieră al companiei + ANOFM</li>
-        <li data-i18n="f2">Parsează HTML server-rendered cu Cheerio (fără browser)</li>
+        <li data-i18n="f1">Extrage job-uri de pe site-ul de carieră al companiei</li>
+        <li data-i18n="f2">Parsează HTML server-rendered cu BeautifulSoup (fără browser)</li>
         <li data-i18n="f3">Validează compania via ANAF</li>
         <li data-i18n="f4">Verifică și elimină job-uri expirate</li>
         <li data-i18n="f5">Salvează în API-ul Peviitor</li>
@@ -320,7 +314,7 @@
     <a class="btn" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml" target="_blank">
       <span>&#9654;</span> <span data-i18n="runBtn">Rulează Scraper</span>
     </a>
-    <a class="btn" href="test-results/" style="background:#7d6b5a;">
+    <a class="btn" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/tests.yml" target="_blank" style="background:#7d6b5a;">
       <span>&#128203;</span> <span data-i18n="testResults">Rezultate Teste</span>
     </a>
     <a class="btn" href="jobs.md" target="_blank" style="background:#4a7c59;">
@@ -378,8 +372,8 @@ const i18n = {
     jobsLabel: "Jobs",
     verifiedLabel: "Verified",
     aboutTitle: "About this scraper",
-    f1: "Extracts jobs from the company careers site + ANOFM",
-    f2: "Parses server-rendered HTML with Cheerio (no browser)",
+    f1: "Extracts jobs from the company careers site",
+    f2: "Parses server-rendered HTML with BeautifulSoup (no browser)",
     f3: "Validates company via ANAF",
     f4: "Checks and removes expired jobs",
     f5: "Saves to Peviitor API",
@@ -397,8 +391,8 @@ const i18n = {
     jobsLabel: "Locuri de muncă",
     verifiedLabel: "Verificate",
     aboutTitle: "Despre acest scraper",
-    f1: "Extrage locuri de muncă de pe site-ul de carieră al companiei + ANOFM",
-    f2: "Parsează HTML server-rendered cu Cheerio (fără browser)",
+    f1: "Extrage locuri de muncă de pe site-ul de carieră al companiei",
+    f2: "Parsează HTML server-rendered cu BeautifulSoup (fără browser)",
     f3: "Validează compania via ANAF",
     f4: "Verifică și elimină locuri de muncă expirate",
     f5: "Salvează în API-ul Peviitor",

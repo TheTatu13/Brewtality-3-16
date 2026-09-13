@@ -8,7 +8,6 @@ company's current openings, pulled live from the peviitor API.
 - `company.json` — regenerated on every scrape by `scraper/main.py` (a copy of
   `config/company.json` plus `ownJobUrlPrefix`).
 - `jobs.md` — generated on every scrape (company info + all current jobs).
-- `test-results/` — HTML test reports pushed by CI.
 
 Nothing here is edited by hand except `index.html`. When you derive a scraper,
 replace the `{{PLACEHOLDER}}` values in `company.json` (or just fill in
