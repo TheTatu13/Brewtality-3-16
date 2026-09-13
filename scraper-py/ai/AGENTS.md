@@ -13,6 +13,11 @@ Brewtality-3-16 template (`scraper-js/`).
 | `scraper/validate.py` | `config/scraper.json` |
 | `scraper/fetch.py` | `scraper/parse.py` |
 | `scraper/api.py` | (the source URLs in `main.py`) |
+| `scraper/anaf.py` (ANAF/CUIScan/CUIFirma lookup) | |
+| `scraper/company.py` (ANAF validation + 7-day cache) | |
+| `scraper/job_validator.py` (HEAD/content/browser URL checks) | |
+| `scraper/validate_jobs.py` (manual deep-validation CLI) | |
+| `scraper/markdown_generator.py` (renders `docs/jobs.md`) | |
 
 Never hardcode company identity in source — it lives in `config/company.json`
 and is read through `scraper/config.py`.
