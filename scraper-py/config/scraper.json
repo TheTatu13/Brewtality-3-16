@@ -9,7 +9,7 @@
     "retryStatus": [429, 500, 502, 503, 504]
   },
   "staleJobDeletion": false,
-  "manageCompany": false,
+  "manageCompany": true,
   "defaultLocation": ["{{DEFAULT_CITY}}"],
   "defaultWorkmode": "on-site",
   "ownJobUrlPrefix": "{{JOB_URL_PREFIX}}",

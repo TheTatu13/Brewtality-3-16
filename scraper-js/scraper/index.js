@@ -437,6 +437,11 @@ async function main() {
       return;
     }
 
+    // On by default: upsertCompany is an idempotent PUT of ANAF-validated facts
+    // (name, address, website, career URL), so there's no real downside to
+    // keeping the company core in sync -- unlike staleJobDeletion below, this
+    // is additive, not destructive. Only turn it off once you've verified
+    // another scraper genuinely owns this CIF's company record.
     if (scraperConfig.manageCompany) {
       try {
         await upsertCompany({
@@ -453,7 +458,12 @@ async function main() {
         console.log(`Note: Could not upsert company: ${err.message}`);
       }
     } else {
-      console.log("manageCompany=false — leaving company core untouched (owned by another scraper on this CIF)");
+      console.log(
+        "manageCompany=false — leaving company core untouched (explicitly disabled in " +
+        "config/scraper.json; only turn this off once you've *verified* another scraper " +
+        "actually manages this CIF's company record — an unverified guess here is exactly " +
+        "what left a real company entirely missing from peviitor's company core before)"
+      );
     }
 
     console.log("=== Step 3: Scrape jobs ===");
@@ -551,7 +561,11 @@ async function main() {
         console.log("\nNo stale jobs to delete");
       }
     } else {
-      console.log("\nStep 4.5 skipped — staleJobDeletion=false (coexistence with other scrapers on this CIF)");
+      console.log(
+        "\nStep 4.5 skipped — staleJobDeletion=false (deliberate: a partial scrape " +
+        "failure would otherwise delete real jobs it simply failed to find this run — " +
+        "use the deep-validate workflow to actually confirm and clean up dead URLs)"
+      );
     }
 
     console.log("\n=== Step 5: Summary ===");
