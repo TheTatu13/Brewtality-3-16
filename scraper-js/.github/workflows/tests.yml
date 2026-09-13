@@ -88,7 +88,12 @@ jobs:
       - name: Ensure company exists in company core
         run: |
           TODAY=$(date -u +%Y-%m-%d)
-          CIF=$(jq -r '.id' scraper/config/company.json)
+          # Zero-pad to 8 digits, exactly like padCif() in scraper/api.js --
+          # otherwise this writes a SECOND, unpadded company record every push
+          # (distinct from the one the real scraper maintains via
+          # upsertCompany/padCif), which is exactly what caused a real
+          # company to show up duplicated in peviitor's search dropdown.
+          CIF=$(printf '%08d' "$(jq -r '.id' scraper/config/company.json)")
           LEGAL_NAME=$(jq -r '.company' scraper/config/company.json)
           BRAND=$(jq -r '.brand' scraper/config/company.json)
           WEBSITE=$(jq -r '.website[0]' scraper/config/company.json)
