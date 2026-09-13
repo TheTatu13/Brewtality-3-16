@@ -19,7 +19,7 @@ from . import api, fetch
 from . import company as company_validation
 from .config import COMPANY_CIF, OWN_URL_PREFIX, company, scraper
 from .markdown_generator import generate_jobs_markdown
-from .parse import parse_deadline, parse_listing, slugify
+from .parse import iso_z, parse_deadline, parse_listing, slugify
 from .validate import assert_scrape_yielded_jobs, filter_valid_jobs
 
 log = logging.getLogger("scraper.main")
@@ -135,7 +135,7 @@ def _to_job_model(raw: dict, cif: str, company_name: str) -> dict:
         "location": raw.get("location") or None,
         "workmode": raw.get("workmode") or None,
         "expirationdate": raw.get("expirationdate") or None,
-        "date": datetime.now(timezone.utc).isoformat(),
+        "date": iso_z(datetime.now(timezone.utc)),
         "status": "scraped",
     }
     return {k: v for k, v in job.items() if v is not None}

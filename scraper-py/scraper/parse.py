@@ -40,8 +40,18 @@ def slugify(text: str) -> str:
     return _NONWORD.sub("-", stripped).strip("-")
 
 
+def iso_z(dt: datetime) -> str:
+    """UTC timestamp as ``2026-09-30T23:59:59.000Z`` -- millisecond precision,
+    literal ``Z`` offset. Solr's date fields parse only this exact shape;
+    Python's own ``datetime.isoformat()`` instead emits microseconds and a
+    ``+00:00`` offset (e.g. ``...23:59:59.000000+00:00``), which Solr rejects
+    with a 400. JS's ``Date.prototype.toISOString()`` always produces this
+    shape natively, so this is what keeps the two in parity."""
+    return dt.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
 def parse_deadline(text: str | None) -> str | None:
-    """'30.09.2026' -> '2026-09-30T23:59:59+00:00' (end of the closing day).
+    """'30.09.2026' -> '2026-09-30T23:59:59.000Z' (end of the closing day).
     Also accepts an ISO date (schema.org JobPosting ``validThrough``)."""
     if not text:
         return None
@@ -51,7 +61,7 @@ def parse_deadline(text: str | None) -> str | None:
     if m:
         dd, mm, yyyy = (int(x) for x in m.groups())
         try:
-            return datetime(yyyy, mm, dd, 23, 59, 59, tzinfo=timezone.utc).isoformat()
+            return iso_z(datetime(yyyy, mm, dd, 23, 59, 59, tzinfo=timezone.utc))
         except ValueError:
             return None
 
@@ -63,7 +73,7 @@ def parse_deadline(text: str | None) -> str | None:
             return None
         if dt.tzinfo is None:  # a bare date means UTC, not the runner's local tz
             dt = dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc).isoformat()
+        return iso_z(dt)
 
     return None
 

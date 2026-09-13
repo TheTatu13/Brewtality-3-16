@@ -8,6 +8,7 @@ orchestration tests, not integration tests.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -183,3 +184,12 @@ def test_run_sleeps_before_the_final_reverification_query(monkeypatch, isolated)
     main.run()
 
     assert slept == [main._SOLR_SETTLE_DELAY_SEC]
+
+
+def test_to_job_model_date_is_solr_safe_not_pythons_native_isoformat():
+    """peviitor's Solr date field parses only "...SSSZ" (JS's toISOString()
+    shape). Python's bare datetime.isoformat() instead emits microseconds and
+    a "+00:00" offset, which Solr's date field rejects with a 400 -- this is
+    what an unpadded 18-job upload from this scraper actually hit."""
+    job = main._to_job_model({"url": "https://x/y/", "title": "T"}, "12345678", "EXAMPLE CO")
+    assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$", job["date"])

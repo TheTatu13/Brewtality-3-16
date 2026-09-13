@@ -1,6 +1,8 @@
 import logging
+import re
+from datetime import datetime, timezone
 
-from scraper.parse import parse_deadline, parse_listing, slugify
+from scraper.parse import iso_z, parse_deadline, parse_listing, slugify
 
 
 def test_slugify_strips_diacritics():
@@ -13,6 +15,25 @@ def test_parse_deadline():
     assert parse_deadline("2026-10-31").startswith("2026-10-31T00:00:00")
     assert parse_deadline("no deadline") is None
     assert parse_deadline(None) is None
+
+
+# peviitor's Solr date fields parse only "...SSSZ" (millisecond precision,
+# literal Z) -- the shape JS's Date.toISOString() emits natively. Python's own
+# datetime.isoformat() instead emits microseconds + "+00:00", which Solr
+# rejects with a 400. Both iso_z() and everything built on it must produce the
+# Solr-safe shape, not Python's native one.
+_ISO_Z_RX = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")
+
+
+def test_iso_z_matches_solr_date_format_not_pythons_native_isoformat():
+    formatted = iso_z(datetime(2026, 9, 30, 23, 59, 59, 123456, tzinfo=timezone.utc))
+    assert formatted == "2026-09-30T23:59:59.123Z"
+    assert _ISO_Z_RX.match(formatted)
+
+
+def test_parse_deadline_emits_solr_safe_z_format():
+    assert _ISO_Z_RX.match(parse_deadline("Apply by: 30.09.2026"))
+    assert _ISO_Z_RX.match(parse_deadline("2026-10-31"))
 
 
 class TestParseListingHappyPath:
