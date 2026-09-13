@@ -86,10 +86,24 @@ def test_required_workflows_exist():
     assert not missing, f"Missing workflows: {missing}"
 
 
-def test_changelog_has_a_version_heading():
+def test_pyproject_version_matches_latest_changelog_entry():
+    """Strict, not just "a version heading exists" -- pyproject.toml's version
+    must be the exact same string as CHANGELOG.md's latest entry. Mirrors the
+    JS template's tests/consistency/version.test.js (package.json vs. CHANGELOG)."""
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    assert re.search(r"^## \[\d+\.\d+\.\d+\]", changelog, re.M), \
-        "CHANGELOG.md must have at least one '## [x.y.z]' version heading"
+    match = re.search(r"^## \[(\d+\.\d+\.\d+)\]", changelog, re.M)
+    assert match, "CHANGELOG.md must have at least one '## [x.y.z]' version heading"
+    changelog_version = match.group(1)
+
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    version_match = re.search(r'^version = "([^"]+)"', pyproject, re.M)
+    assert version_match, "pyproject.toml must have a version = \"x.y.z\" line"
+    pyproject_version = version_match.group(1)
+
+    assert pyproject_version == changelog_version, (
+        f"pyproject.toml version ({pyproject_version}) must match the latest "
+        f"CHANGELOG.md entry ({changelog_version})"
+    )
 
 
 def test_gitignore_excludes_python_artifacts():
