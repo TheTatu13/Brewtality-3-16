@@ -132,6 +132,41 @@ describe("jsonLdJobPostings", () => {
   });
 });
 
+describe("scope.href — the URL cascade (real <a href>, not a guessed permalink)", () => {
+  const scopeFor = (html) => locateArticles(`<div>${html}</div>`, "div").scopes[0];
+
+  it("finds the only anchor with no selector given", () => {
+    const scope = scopeFor('<h2>Title</h2><a class="btn" href="/jobs/jr1/title/">View</a>');
+    expect(scope.href().value).toBe("/jobs/jr1/title/");
+  });
+
+  it("prefers an explicit selector when given", () => {
+    const scope = scopeFor(
+      '<a class="social" href="https://x.example/">X</a>' +
+      '<a class="apply" href="/jobs/jr1/title/">Apply</a>'
+    );
+    expect(scope.href(".apply").value).toBe("/jobs/jr1/title/");
+  });
+
+  it("falls back to the first anchor when the selector misses", () => {
+    const scope = scopeFor('<a href="/jobs/jr1/title/">Apply</a>');
+    expect(scope.href(".nonexistent").value).toBe("/jobs/jr1/title/");
+  });
+
+  it("ignores fragment and javascript: links", () => {
+    const scope = scopeFor(
+      '<a href="#">Save</a><a href="javascript:void(0)">Share</a>' +
+      '<a href="/jobs/jr1/title/">Apply</a>'
+    );
+    expect(scope.href().value).toBe("/jobs/jr1/title/");
+  });
+
+  it("returns null when the block has no anchor", () => {
+    const scope = scopeFor("<h2>Title</h2><p>no links here</p>");
+    expect(scope.href().value).toBeNull();
+  });
+});
+
 describe("locateArticles — article-level cascade", () => {
   it("mode css:<selector> when a primary selector matches", () => {
     const html = `<article class="job-item"><h3>A</h3></article><article class="job-item"><h3>B</h3></article>`;

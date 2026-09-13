@@ -69,18 +69,19 @@ export async function validateByBrowser(url, {
     const { chromium } = await import("playwright");
     browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "networkidle", timeout });
+    const response = await page.goto(url, { waitUntil: "networkidle", timeout });
 
     const text = await page.innerText("body");
     const lower = text.toLowerCase();
-    const expired = keywords.some(kw => lower.includes(kw));
+    const httpStatus = response ? response.status() : 200;
+    const expired = httpStatus >= 400 || keywords.some(kw => lower.includes(kw));
     const title = await page.title();
 
     await browser.close();
     return {
       url,
       status: expired ? "expired" : "active",
-      httpStatus: 200,
+      httpStatus,
       title: title || null,
       error: null
     };
@@ -94,8 +95,11 @@ export async function validateByBrowser(url, {
 }
 
 /**
- * Full GET + body scan. Slower, but catches soft-404s where the HTTP status is
- * 200 but the page body says "no longer available". Used for manual cleanups.
+ * Full GET + body scan. Catches soft-404s (HTTP 200, body says "no longer
+ * available") *and* hard 404s whose body doesn't match any keyword (a site's
+ * real "not found" page rarely uses these exact phrases) -- a non-2xx/3xx
+ * status is unambiguous evidence the page is gone, independent of what its
+ * body says. Used for manual cleanups.
  */
 export async function validateByContent(url, {
   keywords = DEFAULT_EXPIRED_KEYWORDS,
@@ -118,7 +122,7 @@ export async function validateByContent(url, {
 
     const text = await res.text().catch(() => "");
     const lower = text.toLowerCase();
-    const expired = keywords.some(kw => lower.includes(kw));
+    const expired = !res.ok || keywords.some(kw => lower.includes(kw));
     const titleMatch = text.match(/<title>([^<]+)<\/title>/i);
 
     return {

@@ -169,6 +169,28 @@ export function jsonLdJobPostings($) {
  * A mode-agnostic wrapper around one job block. `text(selectorList)` runs a CSS
  * cascade scoped to this block; `raw()` returns its HTML for regex fallbacks.
  */
+// First real (non-fragment, non-javascript:) href under `$scope`: an explicit
+// selector's href if given, else the first <a href> found anywhere. A block
+// usually holds exactly one meaningful link (a "view details" / "apply"
+// button, or the title itself wrapped in <a>) -- this is a much stronger
+// signal than guessing the URL from the title, which breaks the moment the
+// real permalink needs an ID segment the title can't reproduce.
+function scopeHref($scope, selectors) {
+  const isReal = (v) => v && !v.startsWith("#") && !v.startsWith("javascript:");
+  for (const sel of asList(selectors)) {
+    try {
+      const v = ($scope.find(sel).first().attr("href") || "").trim();
+      if (isReal(v)) return { value: v, strategy: `css("${sel}")[href]` };
+    } catch { /* bad selector — try next */ }
+  }
+  const anchors = $scope.find("a[href]");
+  for (let i = 0; i < anchors.length; i++) {
+    const v = (anchors.eq(i).attr("href") || "").trim();
+    if (isReal(v)) return { value: v, strategy: "first-anchor-href" };
+  }
+  return { value: null, strategy: null };
+}
+
 function cssScope($, el) {
   const $el = $(el);
   return {
@@ -182,6 +204,7 @@ function cssScope($, el) {
       }
       return { value: null, strategy: null };
     },
+    href: (selectors) => scopeHref($el, selectors),
     fullText: () => clean($el.text()),
     raw: () => $.html($el)
   };
@@ -201,6 +224,7 @@ function htmlScope(chunk) {
       }
       return { value: null, strategy: null };
     },
+    href: (selectors) => scopeHref($root, selectors),
     fullText: () => clean($root.text()),
     raw: () => chunk
   };

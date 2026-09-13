@@ -5,6 +5,7 @@ import { validateAndGetCompany } from "./company.js";
 import { querySOLR, upsertJobs, upsertCompany, deleteJobByUrl } from "./api.js";
 import { generateJobsMarkdown } from "./markdown-generator.js";
 import { filterValidJobs, assertScrapeYieldedJobs } from "./validate.js";
+import { validateByContent } from "./job-validator.js";
 import { locateArticles, firstMatch, regexText, textFromHtml } from "./self-healing.js";
 import companyConfig from "./config/company.js";
 import scraperConfig, { userAgent } from "./config/scraper.js";
@@ -165,19 +166,26 @@ function cleanTitle(raw) {
 }
 
 /**
- * Parse the open-positions listing into { title, expirationdate } items,
+ * Parse the open-positions listing into { title, expirationdate, url } items,
  * self-healing through the selector cascade (default: scraper/config/scraper.json;
  * pass `selectors` explicitly in tests):
  *
  *   article blocks:  CSS list  ->  JSON-LD JobPosting  ->  regex <article>
  *   title:           CSS list  ->  regex <hN>  ->  regex <a>
  *   deadline:        CSS list  ->  date regex over the whole block text
+ *   url:             first real <a href> in the block (may be relative; the
+ *                     caller resolves it against the listing page)
+ *
+ * `url` is null when the block has no anchor at all -- the caller then falls
+ * back to a sitemap match or a title-slug guess. Prefer this scraped `url`
+ * whenever present: guessing a permalink from the title alone breaks on any
+ * site whose real URL needs an ID the title can't reproduce.
  *
  * @param {string} html
- * @param {{jobArticle:any, jobTitle:any, jobMeta:any}} [selectors]
+ * @param {{jobArticle:any, jobTitle:any, jobMeta:any, jobUrl?:any}} [selectors]
  */
 function parseListing(html, selectors = scraperConfig.selectors) {
-  const { jobTitle, jobMeta, jobArticle } = selectors;
+  const { jobTitle, jobMeta, jobArticle, jobUrl } = selectors;
   const { mode, scopes, jsonLd } = locateArticles(html, jobArticle);
   const items = [];
   const strategies = new Set();
@@ -189,7 +197,7 @@ function parseListing(html, selectors = scraperConfig.selectors) {
       if (!title || seenTitles.has(title.toLowerCase())) continue;
       seenTitles.add(title.toLowerCase());
       strategies.add("jsonld");
-      items.push({ title, expirationdate: parseDeadline(posting.validThrough) });
+      items.push({ title, expirationdate: parseDeadline(posting.validThrough), url: posting.url || null });
     }
     console.log(`  parseListing: ${items.length} items via JSON-LD JobPosting`);
     return items;
@@ -214,7 +222,8 @@ function parseListing(html, selectors = scraperConfig.selectors) {
     const metaText = scope.text(jobMeta).value;
     const deadline = parseDeadline(metaText) || parseDeadline(scope.fullText());
 
-    items.push({ title: cleaned, expirationdate: deadline });
+    const url = scope.href(jobUrl).value;
+    items.push({ title: cleaned, expirationdate: deadline, url });
   }
 
   console.log(
@@ -255,9 +264,15 @@ async function scrapeCareers() {
 
   if (listingItems.length > 0) {
     for (const item of listingItems) {
-      const url =
-        matchSitemapUrl(item.title, sitemapEntries) ||
-        `${scraperConfig.sources.jobArchive}${slugify(item.title)}/`;
+      // The real <a href> scraped from the page is ground truth -- prefer it
+      // over guessing. Sites whose permalink needs an ID the title can't
+      // reproduce (e.g. "/jobs/jr133930/software-architect/") silently 404
+      // under the guess, which nothing else catches until the live
+      // validation just before upload.
+      const url = item.url
+        ? new URL(item.url, scraperConfig.sources.listing).toString()
+        : matchSitemapUrl(item.title, sitemapEntries) ||
+          `${scraperConfig.sources.jobArchive}${slugify(item.title)}/`;
       jobs.push({
         url,
         title: item.title,
@@ -405,6 +420,34 @@ function transformJobsForSOLR(payload) {
   return transformed;
 }
 
+/**
+ * Pre-upload safety net: GET-check every job URL and drop the ones that don't
+ * resolve. filterValidJobs only checks URL *shape* (a syntactically valid
+ * http(s) URL); job-validator.js can actually tell a live job from a 404, but
+ * nothing called it before an upload -- this is what let a URL-construction
+ * bug reach peviitor undetected.
+ *
+ * Uses validateByContent (GET), not validateByHead: at least one real
+ * careers site (Workday-based) answers every HEAD request with a generic 404
+ * regardless of whether the resource exists -- HEAD-only would have dropped
+ * every real job.
+ */
+async function dropDeadUrls(jobs) {
+  const alive = [];
+  for (const job of jobs) {
+    const result = await validateByContent(job.url);
+    if (result.status === "active") {
+      alive.push(job);
+    } else {
+      console.warn(`  dropped "${job.title}" (${job.url}): live URL check failed — ${result.error || `HTTP ${result.httpStatus}`}`);
+    }
+  }
+  if (alive.length < jobs.length) {
+    console.warn(`  ${jobs.length - alive.length}/${jobs.length} job(s) failed live URL validation and were dropped`);
+  }
+  return alive;
+}
+
 // ============================================================================
 // MAIN
 // ============================================================================
@@ -502,6 +545,7 @@ async function main() {
 
     console.log("Transforming jobs for SOLR...");
     const transformedPayload = transformJobsForSOLR(payload);
+    transformedPayload.jobs = await dropDeadUrls(transformedPayload.jobs);
     const validCount = transformedPayload.jobs.filter(j => j.location).length;
     console.log(`Jobs with valid Romanian locations: ${validCount}`);
 
@@ -602,7 +646,7 @@ async function main() {
   }
 }
 
-export { mapToJobModel, transformJobsForSOLR, scrapeCareers, fetchSitemapJobUrls, parseListing, slugify, matchSitemapUrl, parseDeadline };
+export { mapToJobModel, transformJobsForSOLR, scrapeCareers, fetchSitemapJobUrls, parseListing, slugify, matchSitemapUrl, parseDeadline, dropDeadUrls };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();

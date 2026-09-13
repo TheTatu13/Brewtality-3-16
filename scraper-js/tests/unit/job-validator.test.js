@@ -73,6 +73,21 @@ describe('scraper/job-validator.js', () => {
       expect(result.title).toBe('Old Job');
     });
 
+    it('returns expired on a hard 404 even without a keyword match', async () => {
+      // A real site's own "not found" page rarely uses any of
+      // DEFAULT_EXPIRED_KEYWORDS' exact phrasing (confirmed live against
+      // betfairromania.ro: its 404 page is titled "Page Not Found", matching
+      // none of them) -- the HTTP status alone must be enough.
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        text: async () => '<html><title>Page Not Found</title>Oops, nothing here.</html>'
+      });
+      const result = await validator.validateByContent('https://example.com/job/gone');
+      expect(result.status).toBe('expired');
+      expect(result.httpStatus).toBe(404);
+    });
+
     it('accepts custom keywords', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,

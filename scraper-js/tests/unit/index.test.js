@@ -72,13 +72,13 @@ describe('index.js Component Tests', () => {
       <main>
         <div class="job">
           <h3 class="job__title">Senior Widget Engineer &#8211; Platform </h3>
-          <span class="more">Read more</span>
+          <a class="more" href="/careers/jr1/senior-widget-engineer/">Read more</a>
           <p class="job__meta">Apply by: 30.09.2026</p>
           <div class="body"><p>description</p></div>
         </div>
         <div class="job">
           <h3 class="job__title">Night Shift Operator </h3>
-          <span class="more">Read more</span>
+          <a class="more" href="/careers/jr2/night-shift-operator/">Read more</a>
           <p class="job__meta">no deadline announced</p>
           <div class="body"><p>description</p></div>
         </div>
@@ -95,6 +95,16 @@ describe('index.js Component Tests', () => {
       const items = index.parseListing(html, SEL);
       expect(items[0].expirationdate).toBe('2026-09-30T23:59:59.000Z');
       expect(items[1].expirationdate).toBeUndefined();
+    });
+
+    it('carries the real scraped url, not a guessed slug', () => {
+      // The real href (which may carry an ID a title-slug guess could never
+      // reproduce, e.g. "/jobs/jr133930/software-architect/") must survive
+      // parseListing untouched -- scrapeCareers resolves it against the
+      // listing page, it does not fall back to guessing when this is present.
+      const items = index.parseListing(html, SEL);
+      expect(items[0].url).toBe('/careers/jr1/senior-widget-engineer/');
+      expect(items[1].url).toBe('/careers/jr2/night-shift-operator/');
     });
 
     it('returns an empty array when the selector matches nothing', () => {
