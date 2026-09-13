@@ -87,7 +87,7 @@ def validate_by_browser(
 ) -> dict:
     """Headless-browser validator via Playwright (optional dependency).
 
-    Install with ``pip install "betfair-romania-development-scraper[browser]"``
+    Install with ``pip install -e ".[browser]"``
     (or ``pip install playwright && playwright install chromium``). Falls back
     to :func:`validate_by_content` if Playwright is not installed.
     """
