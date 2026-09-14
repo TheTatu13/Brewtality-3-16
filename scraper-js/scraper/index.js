@@ -495,6 +495,7 @@ async function main() {
           location: address ? [address] : companyConfig.location,
           website: companyConfig.website,
           career: companyConfig.career,
+          scraperFile: companyConfig.scraperFile,
           lastScraped: new Date().toISOString().split('T')[0]
         });
       } catch (err) {
