@@ -386,7 +386,7 @@ function mapToJobModel(rawJob, cif, companyName = COMPANY_NAME) {
 
 function transformJobsForSOLR(payload) {
   const romanianCities = [
-    'Bucharest', 'București', 'Cluj-Napoca', 'Cluj Napoca',
+    'Bucharest', 'București', 'Bucuresti', 'Cluj-Napoca', 'Cluj Napoca',
     'Timișoara', 'Timisoara', 'Iași', 'Iasi', 'Brașov', 'Brasov',
     'Constanța', 'Constanta', 'Craiova', 'Bacău', 'Sibiu',
     'Târgu Mureș', 'Targu Mures', 'Oradea', 'Baia Mare', 'Satu Mare',
@@ -396,7 +396,8 @@ function transformJobsForSOLR(payload) {
     'Suceava', 'Bistrița', 'Bistrita', 'Tulcea', 'Călărași', 'Calarasi',
     'Giurgiu', 'Alba Iulia', 'Slatina', 'Piatra Neamț', 'Piatra Neamt', 'Roman',
     'Dumbrăvița', 'Dumbravita', 'Voluntari', 'Popești-Leordeni', 'Popesti-Leordeni',
-    'Chitila', 'Mogoșoaia', 'Mogosoaia', 'Otopeni', 'Dâmbovița', 'Dambovita'
+    'Chitila', 'Mogoșoaia', 'Mogosoaia', 'Otopeni', 'Dâmbovița', 'Dambovita',
+    'Sighișoara', 'Sighisoara', 'Sovata', 'Reghin', 'Târnăveni', 'Tarnaveni'
   ];
 
   const citySet = new Set(romanianCities.map(c => c.toLowerCase()));
