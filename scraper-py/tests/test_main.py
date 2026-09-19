@@ -242,6 +242,37 @@ class TestScrapeCareersUrlSelection:
 
         assert jobs[0]["url"] == f'{scraper["sources"]["jobArchive"]}some-job/'
 
+    def test_exact_sitemap_match_wins_over_an_earlier_fuzzy_match(self, monkeypatch, isolated):
+        """Regression for a real Antibiotice scrape: the sitemap only lists
+        "reprezentant-medical", but the listing page also carries a second,
+        genuinely different, unlinked posting whose slug happens to extend
+        that one ("reprezentant-medical-si-vanzari-veterinare"). Neither
+        article has an <a href>, so both fall to sitemap matching -- and the
+        longer title's slug is a bounded-prefix ("fuzzy") match for the
+        shorter one's exact sitemap entry. If that fuzzy match wins just
+        because its item is scraped first, the real "Reprezentant Medical"
+        posting is left without its own real URL and both jobs collapse onto
+        one SOLR document. An exact match must win the slot regardless of
+        item order, and the fuzzy-matched title must fall through to a
+        guessed (and here, 404ing) slug instead of stealing it."""
+        monkeypatch.setattr(main.fetch, "get", lambda url, **kw: _FakeResp())
+        monkeypatch.setattr(main, "parse_listing", lambda html: [
+            # Deliberately listed BEFORE its exact-match counterpart, since the
+            # bug only reproduces when the fuzzy-matching title is scraped first.
+            {"title": "Reprezentant Medical si Vanzari - Veterinare", "expirationdate": None, "url": None},
+            {"title": "Reprezentant Medical", "expirationdate": None, "url": None},
+        ])
+        monkeypatch.setattr(main, "fetch_sitemap_job_urls", lambda: [
+            {"url": "https://jobs.example.com/careers/reprezentant-medical/", "slug": "reprezentant-medical"},
+        ])
+
+        jobs = main.scrape_careers()
+
+        urls = [j["url"] for j in jobs]
+        assert len(urls) == len(set(urls)), "two distinct postings must never share one URL"
+        assert jobs[1]["url"] == "https://jobs.example.com/careers/reprezentant-medical/"
+        assert jobs[0]["url"] == f'{scraper["sources"]["jobArchive"]}reprezentant-medical-si-vanzari-veterinare/'
+
 
 class TestDropDeadUrls:
     def test_keeps_active_and_drops_expired_or_erroring(self, monkeypatch):

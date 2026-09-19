@@ -69,6 +69,15 @@ function levenshtein(a, b) {
   return d[m][n];
 }
 
+// Exact-slug match only. Split out from matchSitemapUrl below so callers can
+// run an exact-only pass over every item before any of them is allowed to
+// fall back to a fuzzy match -- see the ordering note in scrapeCareers.
+function matchSitemapUrlExact(title, sitemapEntries) {
+  const slug = slugify(title);
+  const exact = sitemapEntries.find((e) => e.slug === slug);
+  return exact ? exact.url : null;
+}
+
 // Pick the sitemap URL whose slug best matches a listing title. Sitemaps drift
 // in the real world (typos, a "-2" disambiguation suffix), so match
 // exact → bounded prefix → small edit distance, else return null.
@@ -273,38 +282,58 @@ async function scrapeCareers() {
   }
 
   if (listingItems.length > 0) {
-    // A sitemap slug already claimed by an earlier title this run can't be
-    // handed to a second, distinct title -- matchSitemapUrl's bounded-prefix
-    // (and levenshtein) fallback tolerates a "-2"/"-copy" disambiguation
-    // suffix on the SAME job, but it can't tell that apart from two
-    // different postings whose slugs happen to overlap (e.g. "Reprezentant
-    // Medical" and "Reprezentant Medical si Vanzari - Veterinare": the
-    // sitemap only lists the first, so the second's longer slug wrongly
-    // prefix-matches it). Left unguarded, both jobs upload under the *same*
-    // URL and one silently overwrites the other in SOLR. Once a sitemap URL
-    // is claimed, later titles fall through to the archive slug-guess
-    // instead -- if that guess is also wrong it 404s and dropDeadUrls
-    // removes it, a safe failure (job missing this run) instead of an
-    // unsafe one (two jobs merged into one).
+    // Resolve every item's URL in two passes so an exact sitemap match
+    // always wins a shared slug over a fuzzy one, regardless of which title
+    // the listing happens to put first:
+    //   pass 1 -- the scraped <a href> (ground truth) or an EXACT sitemap
+    //             slug match; these are trustworthy, so claim their URLs
+    //             immediately.
+    //   pass 2 -- only the items pass 1 couldn't resolve try
+    //             matchSitemapUrl's fuzzy fallback (bounded prefix, then
+    //             small edit distance), and only win an unclaimed URL.
+    // Without this ordering, a longer, unrelated title that fuzzy-matches an
+    // earlier position in sitemapEntries could claim a sitemap URL before
+    // the job that's an exact match for it even gets a turn -- e.g.
+    // "Reprezentant Medical si Vanzari - Veterinare" (no sitemap entry of
+    // its own, no anchor in the listing) grabbing "reprezentant-medical"
+    // ahead of the real "Reprezentant Medical" posting. Two jobs sharing one
+    // URL means one silently overwrites the other in SOLR.
+    const resolvedUrls = new Array(listingItems.length);
     const claimedSitemapUrls = new Set();
-    for (const item of listingItems) {
+    const unresolved = [];
+    listingItems.forEach((item, i) => {
       // The real <a href> scraped from the page is ground truth -- prefer it
       // over guessing. Sites whose permalink needs an ID the title can't
       // reproduce (e.g. "/jobs/jr133930/software-architect/") silently 404
       // under the guess, which nothing else catches until the live
       // validation just before upload.
-      let url;
       if (item.url) {
-        url = new URL(item.url, scraperConfig.sources.listing).toString();
-      } else {
-        const sitemapUrl = matchSitemapUrl(item.title, sitemapEntries);
-        if (sitemapUrl && !claimedSitemapUrls.has(sitemapUrl)) {
-          url = sitemapUrl;
-          claimedSitemapUrls.add(sitemapUrl);
-        } else {
-          url = `${scraperConfig.sources.jobArchive}${slugify(item.title)}/`;
-        }
+        resolvedUrls[i] = new URL(item.url, scraperConfig.sources.listing).toString();
+        return;
       }
+      const exact = matchSitemapUrlExact(item.title, sitemapEntries);
+      if (exact) {
+        resolvedUrls[i] = exact;
+        claimedSitemapUrls.add(exact);
+      } else {
+        unresolved.push(i);
+      }
+    });
+    for (const i of unresolved) {
+      const fuzzy = matchSitemapUrl(listingItems[i].title, sitemapEntries);
+      if (fuzzy && !claimedSitemapUrls.has(fuzzy)) {
+        resolvedUrls[i] = fuzzy;
+        claimedSitemapUrls.add(fuzzy);
+      } else {
+        // Either no fuzzy match, or it points at a sitemap URL an exact
+        // match already claimed this run -- guess instead. A wrong guess
+        // 404s and dropDeadUrls removes it: a safe failure (job missing this
+        // run) instead of an unsafe one (two jobs merged into one).
+        resolvedUrls[i] = `${scraperConfig.sources.jobArchive}${slugify(listingItems[i].title)}/`;
+      }
+    }
+    listingItems.forEach((item, i) => {
+      const url = resolvedUrls[i];
       jobs.push({
         url,
         title: item.title,
@@ -313,7 +342,7 @@ async function scrapeCareers() {
         expirationdate: item.expirationdate,
         source: CAREERS_SOURCE
       });
-    }
+    });
   } else if (sitemapEntries.length > 0) {
     // Listing unreachable — fall back to sitemap-only, deriving titles from slugs.
     console.log("  Falling back to sitemap-only (titles from slugs)");
@@ -680,7 +709,7 @@ async function main() {
   }
 }
 
-export { mapToJobModel, transformJobsForSOLR, scrapeCareers, fetchSitemapJobUrls, parseListing, slugify, matchSitemapUrl, parseDeadline, dropDeadUrls };
+export { mapToJobModel, transformJobsForSOLR, scrapeCareers, fetchSitemapJobUrls, parseListing, slugify, matchSitemapUrl, matchSitemapUrlExact, parseDeadline, dropDeadUrls };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();

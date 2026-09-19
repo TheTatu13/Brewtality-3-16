@@ -80,11 +80,23 @@ def fetch_sitemap_job_urls() -> list[dict]:
         return []
 
 
-def _match_sitemap_url(title: str, entries: list[dict]) -> str | None:
+def _match_sitemap_url_exact(title: str, entries: list[dict]) -> str | None:
     slug = slugify(title)
     for e in entries:
         if e["slug"] == slug:
             return e["url"]
+    return None
+
+
+def _match_sitemap_url_fuzzy(title: str, entries: list[dict]) -> str | None:
+    """Bounded-prefix fallback: tolerates a "-2"/"-copy" disambiguation
+    suffix on the SAME job. Deliberately separate from the exact match above
+    and always tried second, run-wide, across every item (see
+    scrape_careers) -- a fuzzy match can't tell a same-job suffix apart from
+    a genuinely different posting whose slug happens to extend another
+    job's, so an exact match anywhere in this run must win that sitemap slot
+    over a fuzzy one, regardless of which title the listing puts first."""
+    slug = slugify(title)
     for e in entries:
         a, b = e["slug"], slug
         if a.startswith(b) and a[len(b):len(b) + 1] == "-":
@@ -110,21 +122,26 @@ def scrape_careers() -> list[dict]:
     jobs: list[dict] = []
     if items:
         archive = scraper["sources"]["jobArchive"]
-        # A sitemap slug already claimed by an earlier title this run can't be
-        # handed to a second, distinct title -- _match_sitemap_url's bounded-
-        # prefix fallback tolerates a "-2"/"-copy" disambiguation suffix on the
-        # SAME job, but it can't tell that apart from two different postings
-        # whose slugs happen to overlap (e.g. "Reprezentant Medical" and
-        # "Reprezentant Medical si Vanzari - Veterinare": the sitemap only
-        # lists the first, so the second's longer slug wrongly prefix-matches
-        # it). Left unguarded, both jobs upload under the *same* URL and one
-        # silently overwrites the other in SOLR. Once a sitemap URL is
-        # claimed, later titles fall through to the archive slug-guess
-        # instead -- if that guess is also wrong it 404s and _drop_dead_urls
-        # removes it, which is a safe failure (job missing this run) instead
-        # of an unsafe one (two jobs merged into one).
+
+        # Resolve every item's URL in two passes so an exact sitemap match
+        # always wins a shared slug over a fuzzy one, regardless of which
+        # title the listing happens to put first:
+        #   pass 1 -- the scraped <a href> (ground truth) or an EXACT sitemap
+        #             slug match; these are trustworthy, so claim their URLs
+        #             immediately.
+        #   pass 2 -- only the items pass 1 couldn't resolve try the fuzzy
+        #             bounded-prefix fallback, and only win an unclaimed URL.
+        # Without this ordering, a longer, unrelated title that fuzzy-matches
+        # an earlier position in `entries` could claim a sitemap URL before
+        # the job that's an exact match for it even gets a turn -- e.g.
+        # "Reprezentant Medical si Vanzari - Veterinare" (no sitemap entry of
+        # its own, no anchor in the listing) grabbing "reprezentant-medical"
+        # ahead of the real "Reprezentant Medical" posting. Two jobs sharing
+        # one URL means one silently overwrites the other in SOLR.
+        resolved: dict[int, str] = {}
         claimed_sitemap_urls: set[str] = set()
-        for item in items:
+        unresolved: list[int] = []
+        for i, item in enumerate(items):
             # The real <a href> scraped from the page is ground truth -- prefer
             # it over guessing. Sites whose permalink needs an ID the title
             # can't reproduce (e.g. "/jobs/jr133930/software-architect/")
@@ -132,16 +149,31 @@ def scrape_careers() -> list[dict]:
             # job_validator's HEAD check below.
             scraped_url = item.get("url")
             if scraped_url:
-                url = urljoin(listing_url, scraped_url)
+                resolved[i] = urljoin(listing_url, scraped_url)
+                continue
+            exact = _match_sitemap_url_exact(item["title"], entries)
+            if exact:
+                resolved[i] = exact
+                claimed_sitemap_urls.add(exact)
             else:
-                sitemap_url = _match_sitemap_url(item["title"], entries)
-                if sitemap_url and sitemap_url not in claimed_sitemap_urls:
-                    url = sitemap_url
-                    claimed_sitemap_urls.add(sitemap_url)
-                else:
-                    url = f"{archive}{slugify(item['title'])}/"
+                unresolved.append(i)
+
+        for i in unresolved:
+            fuzzy = _match_sitemap_url_fuzzy(items[i]["title"], entries)
+            if fuzzy and fuzzy not in claimed_sitemap_urls:
+                resolved[i] = fuzzy
+                claimed_sitemap_urls.add(fuzzy)
+            else:
+                # Either no fuzzy match, or it points at a sitemap URL an
+                # exact match already claimed this run -- guess instead. A
+                # wrong guess 404s and _drop_dead_urls removes it: a safe
+                # failure (job missing this run) instead of an unsafe one
+                # (two jobs merged into one).
+                resolved[i] = f"{archive}{slugify(items[i]['title'])}/"
+
+        for i, item in enumerate(items):
             jobs.append({
-                "url": url,
+                "url": resolved[i],
                 "title": item["title"],
                 "location": location_from_title(item["title"], scraper["defaultLocation"]),
                 "workmode": scraper["defaultWorkmode"],
