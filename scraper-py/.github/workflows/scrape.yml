@@ -13,6 +13,8 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
@@ -23,11 +25,28 @@ jobs:
         run: pip install -e ".[dev]" && pytest -q
       - name: Run scraper
         run: |
-          if [ "${{ github.event.inputs.dry_run }}" = "false" ]; then
-            python -m scraper.main
-          else
+          # Only a manual workflow_dispatch run can ask for dry-run (default true
+          # in the UI, so an explicit "false" is required to write for real from
+          # there). A scheduled run has no `inputs` context at all --
+          # github.event.inputs.dry_run is "" on a `schedule` trigger, which
+          # must fall through to a REAL run, not dry-run: the previous
+          # `[ "" = "false" ]` check took the dry-run branch unconditionally on
+          # every cron fire, so the daily automation never actually wrote to
+          # the API. Gating on event_name first is what fixes that.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
             python -m scraper.main --dry-run
+          else
+            python -m scraper.main
           fi
+
+      - name: Push docs/ back to the repo
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/jobs.md docs/company.json company.json 2>/dev/null || true
+          git commit -m "[skip ci] Update scraped jobs" || echo "No changes to commit"
+          git push || echo "Push failed (race condition) -- will be picked up next run"
 
   autoheal:
     runs-on: ubuntu-latest
