@@ -189,13 +189,20 @@ function parseListing(html, selectors = scraperConfig.selectors) {
   const { mode, scopes, jsonLd } = locateArticles(html, jobArticle);
   const items = [];
   const strategies = new Set();
-  const seenTitles = new Set(); // a broad fallback selector can match nested blocks
+  // Dedup key is title+URL, not title alone: a broad fallback selector can
+  // match the same block twice (same title AND same URL), but a site is
+  // free to post one title open in several locations, each with its own
+  // permalink (e.g. "Mecatronist" at both /sighisoara/ and /sovata/) -- that
+  // is two real postings, not a selector artifact, and must not be dropped.
+  const seenKeys = new Set();
+  const dedupeKey = (title, url) => `${title.toLowerCase()}|${url || ""}`;
 
   if (mode === "jsonld") {
     for (const posting of jsonLd) {
       const title = cleanTitle(posting.title);
-      if (!title || seenTitles.has(title.toLowerCase())) continue;
-      seenTitles.add(title.toLowerCase());
+      const key = dedupeKey(title || "", posting.url);
+      if (!title || seenKeys.has(key)) continue;
+      seenKeys.add(key);
       strategies.add("jsonld");
       items.push({ title, expirationdate: parseDeadline(posting.validThrough), url: posting.url || null });
     }
@@ -214,15 +221,18 @@ function parseListing(html, selectors = scraperConfig.selectors) {
     ], { silent: true });
 
     const cleaned = cleanTitle(title);
-    if (!cleaned || seenTitles.has(cleaned.toLowerCase())) continue;
-    seenTitles.add(cleaned.toLowerCase());
-    if (strategy) strategies.add(strategy);
+    if (!cleaned) continue;
 
     // DEADLINE — meta selectors, then a bare date regex over the whole block.
     const metaText = scope.text(jobMeta).value;
     const deadline = parseDeadline(metaText) || parseDeadline(scope.fullText());
 
     const url = scope.href(jobUrl).value;
+    const key = dedupeKey(cleaned, url);
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
+    if (strategy) strategies.add(strategy);
+
     items.push({ title: cleaned, expirationdate: deadline, url });
   }
 

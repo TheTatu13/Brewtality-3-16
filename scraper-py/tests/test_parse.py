@@ -58,6 +58,39 @@ class TestParseListingHappyPath:
     def test_empty_when_nothing_matches(self, selectors):
         assert parse_listing("<div>no jobs here</div>", selectors) == []
 
+    def test_keeps_two_postings_sharing_a_title_but_different_urls(self, selectors):
+        """Real-world case: a company reposts the same role for two locations
+        ("Mecatronist" open in both Sighisoara and Sovata). Dedup must key on
+        title+URL, not title alone -- this must not collapse into one job."""
+        html = """
+            <div class="job">
+              <h2 class="job__title">Mecatronist</h2>
+              <a href="https://x/mecatronist-sighisoara/">apply</a>
+            </div>
+            <div class="job">
+              <h2 class="job__title">Mecatronist</h2>
+              <a href="https://x/mecatronist-sovata/">apply</a>
+            </div>
+        """
+        items = parse_listing(html, selectors)
+        assert len(items) == 2
+        assert sorted(i["url"] for i in items) == [
+            "https://x/mecatronist-sighisoara/",
+            "https://x/mecatronist-sovata/",
+        ]
+
+    def test_still_drops_true_duplicate_same_title_and_url(self, selectors):
+        html = """
+            <article class="job">
+              <div class="job">
+                <h2 class="job__title">Analyst</h2>
+                <a href="https://x/analyst/">apply</a>
+              </div>
+            </article>
+        """
+        items = parse_listing(html, selectors)
+        assert len(items) == 1
+
     def test_placeholder_config_does_not_crash(self):
         # default config ships {{SELECTOR_JOB_ARTICLE}} — invalid CSS, must be skipped
         result = parse_listing("<main><div class='job'><h3 class='job__title'>X</h3></div></main>")

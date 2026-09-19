@@ -111,6 +111,43 @@ describe('index.js Component Tests', () => {
       expect(index.parseListing('<div>no jobs here</div>', SEL)).toEqual([]);
     });
 
+    it('keeps two postings that share a title but have different URLs (dedup is title+URL, not title alone)', () => {
+      // Real-world case: a company reposts the same role for two locations
+      // ("Mecatronist" open in both Sighișoara and Sovata). This must not
+      // collapse into one job — each has its own permalink.
+      const html = `
+        <div class="job">
+          <h2 class="job__title">Mecatronist</h2>
+          <a href="https://x/mecatronist-sighisoara/">apply</a>
+        </div>
+        <div class="job">
+          <h2 class="job__title">Mecatronist</h2>
+          <a href="https://x/mecatronist-sovata/">apply</a>
+        </div>
+      `;
+      const items = index.parseListing(html, SEL);
+      expect(items).toHaveLength(2);
+      expect(items.map((i) => i.url).sort()).toEqual([
+        'https://x/mecatronist-sighisoara/',
+        'https://x/mecatronist-sovata/'
+      ]);
+    });
+
+    it('still drops a true duplicate match (same title AND same URL) from an overly broad fallback selector', () => {
+      const html = `
+        <article class="job">
+          <div class="job">
+            <h2 class="job__title">Analyst</h2>
+            <a href="https://x/analyst/">apply</a>
+          </div>
+        </article>
+      `;
+      // A selector broad enough to match both the outer and inner ".job" block
+      // for the same posting must still collapse to one item.
+      const items = index.parseListing(html, SEL);
+      expect(items).toHaveLength(1);
+    });
+
     it('skips an unconfigured {{PLACEHOLDER}} primary selector and uses a fallback', () => {
       // the template ships {{SELECTOR_JOB_ARTICLE}} — invalid CSS, must not crash;
       // the generic "[class*='job']" fallback in the shipped config still matches.

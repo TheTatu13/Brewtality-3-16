@@ -108,14 +108,23 @@ def parse_listing(html: str, selectors: dict | None = None) -> list[dict]:
     articles = locate_articles(html, sel["jobArticle"])
     items: list[dict] = []
     strategies: set[str] = set()
-    seen: set[str] = set()  # a broad fallback selector can match nested blocks
+    # Dedup key is title+URL, not title alone: a broad fallback selector can
+    # match the same block twice (same title AND same URL), but a site is
+    # free to post one title open in several locations, each with its own
+    # permalink (e.g. "Mecatronist" at both /sighisoara/ and /sovata/) -- that
+    # is two real postings, not a selector artifact, and must not be dropped.
+    seen: set[str] = set()
+
+    def _dedupe_key(title: str, url) -> str:
+        return f"{title.lower()}|{url or ''}"
 
     if articles.mode == "jsonld":
         for posting in articles.json_ld:
             title = _clean_title(posting.get("title"))
-            if not title or title.lower() in seen:
+            key = _dedupe_key(title or "", posting.get("url"))
+            if not title or key in seen:
                 continue
-            seen.add(title.lower())
+            seen.add(key)
             strategies.add("jsonld")
             items.append({
                 "title": title,
@@ -138,15 +147,19 @@ def parse_listing(html: str, selectors: dict | None = None) -> list[dict]:
             silent=True,
         )
         title = _clean_title(match.value)
-        if not title or title.lower() in seen:
+        if not title:
             continue
-        seen.add(title.lower())
-        if match.strategy:
-            strategies.add(match.strategy)
 
         meta = scope.text(sel["jobMeta"]).value
         deadline = parse_deadline(meta) or parse_deadline(scope.full_text())
         url = scope.href(sel.get("jobUrl")).value
+        key = _dedupe_key(title, url)
+        if key in seen:
+            continue
+        seen.add(key)
+        if match.strategy:
+            strategies.add(match.strategy)
+
         items.append({"title": title, "expirationdate": deadline, "url": url})
 
     tag = f" [{', '.join(sorted(strategies))}]" if strategies else ""
