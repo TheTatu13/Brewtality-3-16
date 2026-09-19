@@ -2,7 +2,15 @@ import logging
 import re
 from datetime import datetime, timezone
 
-from scraper.parse import iso_z, parse_deadline, parse_listing, slugify
+from scraper.parse import (
+    iso_z,
+    location_from_title,
+    normalize_workmode,
+    parse_deadline,
+    parse_listing,
+    slugify,
+    validate_ro_locations,
+)
 
 
 def test_slugify_strips_diacritics():
@@ -121,3 +129,59 @@ class TestParseListingSelfHealing:
     def test_unrecognisable_page_returns_empty_without_raising(self, fixture_html, selectors):
         # feeds the canary in main.run()
         assert parse_listing(fixture_html("listing_unrecognisable.html"), selectors) == []
+
+
+class TestLocationFromTitle:
+    """Parity port of scraper-js's locationFromTitle -- a cheap location hint
+    from the job title, always re-validated downstream by validate_ro_locations."""
+
+    def test_finds_a_known_city_in_the_title(self):
+        assert location_from_title("Software Engineer - Cluj", ["Default"]) == ["Cluj"]
+
+    def test_is_case_insensitive_and_diacritic_sensitive(self):
+        assert location_from_title("operator productie timisoara", ["Default"]) == ["Timisoara"]
+
+    def test_falls_back_to_default_location_when_no_city_hint_matches(self):
+        assert location_from_title("Remote DevOps Engineer", ["Default"]) == ["Default"]
+
+
+class TestValidateRoLocations:
+    """Parity port of scraper-js's transformJobsForSOLR location step -- the
+    JS/Python gap this closes: scraper-py previously had no allowlist at all,
+    so any location (or none) silently uploaded as-is instead of degrading to
+    the generic "România" fallback."""
+
+    def test_keeps_known_cities_unchanged(self):
+        assert validate_ro_locations(["Sighisoara"]) == ["Sighisoara"]
+
+    def test_normalizes_bare_country_name_casing(self):
+        assert validate_ro_locations(["romania"]) == ["România"]
+        assert validate_ro_locations(["românia"]) == ["România"]
+
+    def test_drops_an_unrecognized_location_and_falls_back(self):
+        assert validate_ro_locations(["Not A Real City"]) == ["România"]
+
+    def test_falls_back_when_location_is_missing_entirely(self):
+        assert validate_ro_locations(None) == ["România"]
+        assert validate_ro_locations([]) == ["România"]
+
+    def test_keeps_only_the_valid_entries_in_a_mixed_list(self):
+        assert validate_ro_locations(["Sovata", "Not A City", "Sibiu"]) == ["Sovata", "Sibiu"]
+
+
+class TestNormalizeWorkmode:
+    """Parity port of scraper-js's normalizeWorkmode."""
+
+    def test_maps_remote_variants(self):
+        assert normalize_workmode("Full Remote") == "remote"
+
+    def test_maps_office_or_site_variants(self):
+        assert normalize_workmode("On-site") == "on-site"
+        assert normalize_workmode("Office") == "on-site"
+
+    def test_defaults_unrecognized_values_to_hybrid(self):
+        assert normalize_workmode("Flexible") == "hybrid"
+
+    def test_returns_none_for_missing_workmode(self):
+        assert normalize_workmode(None) is None
+        assert normalize_workmode("") is None

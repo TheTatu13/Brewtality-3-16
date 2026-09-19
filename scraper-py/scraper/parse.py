@@ -40,6 +40,79 @@ def slugify(text: str) -> str:
     return _NONWORD.sub("-", stripped).strip("-")
 
 
+# Light location hint from the title; the final job model still gets its
+# location re-validated against ROMANIAN_CITIES before upload. Mirrors
+# scraper-js's RO_CITY_HINTS / locationFromTitle exactly.
+RO_CITY_HINTS = [
+    "Iași", "Iasi", "București", "Bucuresti", "Cluj", "Timișoara", "Timisoara",
+    "Ploiești", "Ploiesti", "Constanța", "Constanta", "Brașov", "Brasov",
+    "Craiova", "Sibiu", "Oradea", "Bacău", "Bacau", "Galați", "Galati",
+    "Dâmbovița", "Dambovita",
+]
+
+
+def location_from_title(title: str, default_location: list[str]) -> list[str]:
+    """Cheap location hint scraped straight from the job title; the caller
+    still runs the result through ``validate_ro_locations`` before upload."""
+    for city in RO_CITY_HINTS:
+        if re.search(rf"\b{re.escape(city)}\b", title, re.IGNORECASE):
+            return [city]
+    return default_location
+
+
+# Full Romanian-city allowlist used to sanity-check any job location before
+# it reaches SOLR -- whether it came from location_from_title, raw scraped
+# markup, or ANOFM. Anything not on this list (and not a bare "românia"/
+# "romania") silently degrades to the generic ["România"] fallback instead of
+# uploading noise (a "Remote" tag, a street address, a typo). Kept identical
+# to scraper-js's romanianCities -- this is the JS/Python parity fix.
+ROMANIAN_CITIES = [
+    'Bucharest', 'București', 'Bucuresti', 'Cluj-Napoca', 'Cluj Napoca',
+    'Timișoara', 'Timisoara', 'Iași', 'Iasi', 'Brașov', 'Brasov',
+    'Constanța', 'Constanta', 'Craiova', 'Bacău', 'Sibiu',
+    'Târgu Mureș', 'Targu Mures', 'Oradea', 'Baia Mare', 'Satu Mare',
+    'Ploiești', 'Ploiesti', 'Pitești', 'Pitesti', 'Arad', 'Galați', 'Galati',
+    'Brăila', 'Braila', 'Drobeta-Turnu Severin', 'Râmnicu Vâlcea', 'Ramnicu Valcea',
+    'Buzău', 'Buzau', 'Botoșani', 'Botosani', 'Zalău', 'Zalau', 'Hunedoara', 'Deva',
+    'Suceava', 'Bistrița', 'Bistrita', 'Tulcea', 'Călărași', 'Calarasi',
+    'Giurgiu', 'Alba Iulia', 'Slatina', 'Piatra Neamț', 'Piatra Neamt', 'Roman',
+    'Dumbrăvița', 'Dumbravita', 'Voluntari', 'Popești-Leordeni', 'Popesti-Leordeni',
+    'Chitila', 'Mogoșoaia', 'Mogosoaia', 'Otopeni', 'Dâmbovița', 'Dambovita',
+    'Sighișoara', 'Sighisoara', 'Sovata', 'Reghin', 'Târnăveni', 'Tarnaveni',
+]
+_CITY_SET = {c.lower() for c in ROMANIAN_CITIES}
+
+
+def validate_ro_locations(locations: list[str] | None) -> list[str]:
+    """Filters a job's location list down to entries that are either a bare
+    "românia"/"romania" or a known Romanian city, normalizing the country
+    name's casing, and falls back to ``["România"]`` when nothing survives.
+    Port of scraper-js's ``transformJobsForSOLR`` location step -- without
+    it, any location that doesn't exactly match the allowlist (or is simply
+    missing) silently uploads as-is or gets dropped instead of degrading to
+    the safe generic fallback."""
+    valid = []
+    for loc in (locations or []):
+        lower = loc.lower().strip()
+        if lower in ("romania", "românia"):
+            valid.append("România")
+        elif lower in _CITY_SET:
+            valid.append(loc)
+    return valid or ["România"]
+
+
+def normalize_workmode(workmode: str | None) -> str | None:
+    """Port of scraper-js's ``normalizeWorkmode``."""
+    if not workmode:
+        return None
+    lower = workmode.lower()
+    if "remote" in lower:
+        return "remote"
+    if "office" in lower or "on-site" in lower or "site" in lower:
+        return "on-site"
+    return "hybrid"
+
+
 def iso_z(dt: datetime) -> str:
     """UTC timestamp as ``2026-09-30T23:59:59.000Z`` -- millisecond precision,
     literal ``Z`` offset. Solr's date fields parse only this exact shape;

@@ -19,7 +19,15 @@ from . import api, fetch, job_validator
 from . import company as company_validation
 from .config import COMPANY_CIF, OWN_URL_PREFIX, company, scraper
 from .markdown_generator import generate_jobs_markdown
-from .parse import iso_z, parse_deadline, parse_listing, slugify
+from .parse import (
+    iso_z,
+    location_from_title,
+    normalize_workmode,
+    parse_deadline,
+    parse_listing,
+    slugify,
+    validate_ro_locations,
+)
 from .validate import assert_scrape_yielded_jobs, filter_valid_jobs
 
 log = logging.getLogger("scraper.main")
@@ -116,7 +124,7 @@ def scrape_careers() -> list[dict]:
             jobs.append({
                 "url": url,
                 "title": item["title"],
-                "location": scraper["defaultLocation"],
+                "location": location_from_title(item["title"], scraper["defaultLocation"]),
                 "workmode": scraper["defaultWorkmode"],
                 "expirationdate": item.get("expirationdate"),
                 "source": _CAREERS_SOURCE,
@@ -169,8 +177,8 @@ def _to_job_model(raw: dict, cif: str, company_name: str) -> dict:
         "title": raw["title"],
         "company": company_name,
         "cif": cif,
-        "location": raw.get("location") or None,
-        "workmode": raw.get("workmode") or None,
+        "location": validate_ro_locations(raw.get("location")),
+        "workmode": normalize_workmode(raw.get("workmode")),
         "expirationdate": raw.get("expirationdate") or None,
         "date": iso_z(datetime.now(timezone.utc)),
         "status": "scraped",
