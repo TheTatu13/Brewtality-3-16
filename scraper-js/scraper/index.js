@@ -273,16 +273,38 @@ async function scrapeCareers() {
   }
 
   if (listingItems.length > 0) {
+    // A sitemap slug already claimed by an earlier title this run can't be
+    // handed to a second, distinct title -- matchSitemapUrl's bounded-prefix
+    // (and levenshtein) fallback tolerates a "-2"/"-copy" disambiguation
+    // suffix on the SAME job, but it can't tell that apart from two
+    // different postings whose slugs happen to overlap (e.g. "Reprezentant
+    // Medical" and "Reprezentant Medical si Vanzari - Veterinare": the
+    // sitemap only lists the first, so the second's longer slug wrongly
+    // prefix-matches it). Left unguarded, both jobs upload under the *same*
+    // URL and one silently overwrites the other in SOLR. Once a sitemap URL
+    // is claimed, later titles fall through to the archive slug-guess
+    // instead -- if that guess is also wrong it 404s and dropDeadUrls
+    // removes it, a safe failure (job missing this run) instead of an
+    // unsafe one (two jobs merged into one).
+    const claimedSitemapUrls = new Set();
     for (const item of listingItems) {
       // The real <a href> scraped from the page is ground truth -- prefer it
       // over guessing. Sites whose permalink needs an ID the title can't
       // reproduce (e.g. "/jobs/jr133930/software-architect/") silently 404
       // under the guess, which nothing else catches until the live
       // validation just before upload.
-      const url = item.url
-        ? new URL(item.url, scraperConfig.sources.listing).toString()
-        : matchSitemapUrl(item.title, sitemapEntries) ||
-          `${scraperConfig.sources.jobArchive}${slugify(item.title)}/`;
+      let url;
+      if (item.url) {
+        url = new URL(item.url, scraperConfig.sources.listing).toString();
+      } else {
+        const sitemapUrl = matchSitemapUrl(item.title, sitemapEntries);
+        if (sitemapUrl && !claimedSitemapUrls.has(sitemapUrl)) {
+          url = sitemapUrl;
+          claimedSitemapUrls.add(sitemapUrl);
+        } else {
+          url = `${scraperConfig.sources.jobArchive}${slugify(item.title)}/`;
+        }
+      }
       jobs.push({
         url,
         title: item.title,

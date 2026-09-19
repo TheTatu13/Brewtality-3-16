@@ -110,6 +110,20 @@ def scrape_careers() -> list[dict]:
     jobs: list[dict] = []
     if items:
         archive = scraper["sources"]["jobArchive"]
+        # A sitemap slug already claimed by an earlier title this run can't be
+        # handed to a second, distinct title -- _match_sitemap_url's bounded-
+        # prefix fallback tolerates a "-2"/"-copy" disambiguation suffix on the
+        # SAME job, but it can't tell that apart from two different postings
+        # whose slugs happen to overlap (e.g. "Reprezentant Medical" and
+        # "Reprezentant Medical si Vanzari - Veterinare": the sitemap only
+        # lists the first, so the second's longer slug wrongly prefix-matches
+        # it). Left unguarded, both jobs upload under the *same* URL and one
+        # silently overwrites the other in SOLR. Once a sitemap URL is
+        # claimed, later titles fall through to the archive slug-guess
+        # instead -- if that guess is also wrong it 404s and _drop_dead_urls
+        # removes it, which is a safe failure (job missing this run) instead
+        # of an unsafe one (two jobs merged into one).
+        claimed_sitemap_urls: set[str] = set()
         for item in items:
             # The real <a href> scraped from the page is ground truth -- prefer
             # it over guessing. Sites whose permalink needs an ID the title
@@ -120,7 +134,12 @@ def scrape_careers() -> list[dict]:
             if scraped_url:
                 url = urljoin(listing_url, scraped_url)
             else:
-                url = _match_sitemap_url(item["title"], entries) or f"{archive}{slugify(item['title'])}/"
+                sitemap_url = _match_sitemap_url(item["title"], entries)
+                if sitemap_url and sitemap_url not in claimed_sitemap_urls:
+                    url = sitemap_url
+                    claimed_sitemap_urls.add(sitemap_url)
+                else:
+                    url = f"{archive}{slugify(item['title'])}/"
             jobs.append({
                 "url": url,
                 "title": item["title"],
