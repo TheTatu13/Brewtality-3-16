@@ -5,6 +5,7 @@
   "main": "scraper/index.js",
   "scripts": {
     "scrape": "node --no-deprecation scraper/index.js",
+    "scrape:dry-run": "node --no-deprecation scraper/index.js --dry-run",
     "test": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=unit",
     "test:integration": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=integration",

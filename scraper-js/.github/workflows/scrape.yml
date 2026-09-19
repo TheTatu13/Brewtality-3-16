@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 6 * * *'  # Daily at 6 AM
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (scrape + validate, no real writes)'
+        type: boolean
+        default: true
 
 jobs:
   scrape:
@@ -27,7 +32,23 @@ jobs:
         run: npm install
 
       - name: Ensure company exists in company core
+        # Real write, so it must respect BOTH gates real writes need:
+        #   - manageCompany (config/scraper.json) -- skip entirely once another
+        #     scraper is verified to own this CIF's company record.
+        #   - dry_run -- only a manual workflow_dispatch run can ask for it (default
+        #     true in the UI); a schedule trigger has no `inputs` context at all
+        #     (github.event.inputs.dry_run is "" there, not "false"), so it must
+        #     fall through to a REAL run, same rule as the Python template's
+        #     scrape.yml. This step used to run unconditionally on every trigger,
+        #     ignoring both manageCompany and any notion of dry-run -- there was no
+        #     dry-run concept anywhere in the JS scraper until this fix.
+        if: "!(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true')"
         run: |
+          MANAGE_COMPANY=$(jq -r '.manageCompany' scraper/config/scraper.json)
+          if [ "$MANAGE_COMPANY" != "true" ]; then
+            echo "manageCompany=false in config/scraper.json -- skipping (another scraper owns this CIF's company record)"
+            exit 0
+          fi
           CIF=$(jq -r '.id' scraper/config/company.json)
           LEGAL_NAME=$(jq -r '.company' scraper/config/company.json)
           BRAND=$(jq -r '.brand' scraper/config/company.json)
@@ -82,7 +103,17 @@ jobs:
           cp test-report.html docs/test-results/pre-scrape-integration.html || true
 
       - name: Run scraper
-        run: npm run scrape
+        # Same gating rule as the Python template: only a manual workflow_dispatch
+        # run can ask for dry-run (default true in the UI, so an explicit "false"
+        # is required to write for real from there). A scheduled run has no
+        # `inputs` context at all -- github.event.inputs.dry_run is "" on a
+        # `schedule` trigger, which must fall through to a REAL run.
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.dry_run }}" != "false" ]; then
+            npm run scrape:dry-run
+          else
+            npm run scrape
+          fi
           
       - name: Check for new jobs
         run: |

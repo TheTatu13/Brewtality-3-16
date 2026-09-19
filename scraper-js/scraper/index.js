@@ -514,7 +514,15 @@ async function dropDeadUrls(jobs) {
 // MAIN
 // ============================================================================
 
-async function main() {
+/**
+ * `--dry-run` mirrors the Python template's `--dry-run` flag: scrape and
+ * validate normally, but make zero real writes -- no company upsert, no job
+ * upsert, no job delete of any kind. This flag did not exist at all before
+ * (this whole function always wrote for real, unconditionally, including a
+ * CIF-wide job delete for an ANAF-inactive company), so every "test run" of
+ * a JS scraper was a real production write.
+ */
+async function main(dryRun = process.argv.includes("--dry-run")) {
   try {
     fs.mkdirSync("scraper", { recursive: true });
 
@@ -532,12 +540,16 @@ async function main() {
     console.log(`Found ${existingCount} existing jobs in SOLR (${ownExistingUrls.size} ours)`);
 
     console.log("=== Step 2: Validate company via ANAF ===");
-    const { company, cif, address, status } = await validateAndGetCompany();
+    const { company, cif, address, status } = await validateAndGetCompany(dryRun);
     COMPANY_NAME = company;
     if (status === 'inactive') {
-      console.log("Company is INACTIVE — removing only our own jobs, skipping scrape.");
-      for (const url of ownExistingUrls) {
-        try { await deleteJobByUrl(url); } catch (e) { console.warn(`  delete failed: ${url} — ${e.message}`); }
+      if (dryRun) {
+        console.log(`Company is INACTIVE — dry-run, so NOT deleting our ${ownExistingUrls.size} job(s) (would delete on a real run; validateAndGetCompany already skipped the CIF-wide delete)`);
+      } else {
+        console.log("Company is INACTIVE — removing only our own jobs, skipping scrape.");
+        for (const url of ownExistingUrls) {
+          try { await deleteJobByUrl(url); } catch (e) { console.warn(`  delete failed: ${url} — ${e.message}`); }
+        }
       }
       return;
     }
@@ -547,7 +559,7 @@ async function main() {
     // keeping the company core in sync -- unlike staleJobDeletion below, this
     // is additive, not destructive. Only turn it off once you've verified
     // another scraper genuinely owns this CIF's company record.
-    if (scraperConfig.manageCompany) {
+    if (scraperConfig.manageCompany && !dryRun) {
       try {
         await upsertCompany({
           id: cif,
@@ -563,6 +575,8 @@ async function main() {
       } catch (err) {
         console.log(`Note: Could not upsert company: ${err.message}`);
       }
+    } else if (dryRun && scraperConfig.manageCompany) {
+      console.log(`Dry-run — would upsert company core for CIF ${cif}`);
     } else {
       console.log(
         "manageCompany=false — leaving company core untouched (explicitly disabled in " +
@@ -641,7 +655,9 @@ async function main() {
     console.log("Wrote docs/company.json (+ ownJobUrlPrefix)");
 
     console.log("\n=== Step 4: Upsert jobs to SOLR ===");
-    if (transformedPayload.jobs.length > 0) {
+    if (dryRun) {
+      console.log(`Dry-run — would upsert ${transformedPayload.jobs.length} jobs`);
+    } else if (transformedPayload.jobs.length > 0) {
       await upsertJobs(transformedPayload.jobs);
     } else {
       console.log("No jobs scraped — skipping upsert (API rejects an empty array)");
@@ -654,7 +670,9 @@ async function main() {
     if (scraperConfig.staleJobDeletion) {
       const scrapedUrls = new Set(transformedPayload.jobs.map(job => job.url));
       const staleUrls = [...ownExistingUrls].filter(url => !scrapedUrls.has(url));
-      if (staleUrls.length > 0) {
+      if (staleUrls.length > 0 && dryRun) {
+        console.log(`\n=== Step 4.5: dry-run — would delete ${staleUrls.length} stale job(s) (ours only) ===`);
+      } else if (staleUrls.length > 0) {
         console.log(`\n=== Step 4.5: Delete ${staleUrls.length} stale job(s) (ours only) ===`);
         for (const url of staleUrls) {
           try {

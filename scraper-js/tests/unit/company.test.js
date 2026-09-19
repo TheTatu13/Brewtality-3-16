@@ -154,19 +154,50 @@ describe('company.js', () => {
       expect(typeof result.existingJobsCount).toBe('number');
     });
 
-    // the fixture company is active — testul inactive se rulează doar dacă firma e inactivă
-    if (EXAMPLE_ANAF_RECORD.inactive) {
-      it('should return inactive status when company is inactive', async () => {
-        const inactiveRecord = { ...EXAMPLE_ANAF_RECORD, inactive: true };
+    it('should return inactive status when company is inactive', async () => {
+      const inactiveRecord = { ...EXAMPLE_ANAF_RECORD, inactive: true };
 
-        mockFetch
-          .mockResolvedValueOnce(anafCompanyResponse(inactiveRecord))
-          .mockResolvedValueOnce(solrResponse(0, []));
+      mockFetch
+        .mockResolvedValueOnce(anafCompanyResponse(inactiveRecord))
+        .mockResolvedValueOnce(solrResponse(0, []));
 
-        const result = await company.validateAndGetCompany();
+      const result = await company.validateAndGetCompany();
 
-        expect(result).toHaveProperty('status', 'inactive');
-      });
-    }
+      expect(result).toHaveProperty('status', 'inactive');
+    });
+
+    it('deletes jobs by CIF when an inactive company still has jobs in SOLR', async () => {
+      const inactiveRecord = { ...EXAMPLE_ANAF_RECORD, inactive: true };
+
+      mockFetch
+        .mockResolvedValueOnce(anafCompanyResponse(inactiveRecord))
+        .mockResolvedValueOnce(solrResponse(3, []))
+        .mockResolvedValueOnce(peviitorResponse([]))
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ count: 3 }) }); // deleteJobsByCIF
+
+      const result = await company.validateAndGetCompany();
+
+      expect(result.status).toBe('inactive');
+      const deleteCall = mockFetch.mock.calls.find(([, opts]) => opts?.method === 'DELETE');
+      expect(deleteCall).toBeDefined();
+    });
+
+    it('regression: dry_run=true must never call deleteJobsByCIF, even with jobs present', async () => {
+      // Before this fix, validateAndGetCompany had no dryRun parameter at all --
+      // an inactive company with existing jobs always fired a real, CIF-wide
+      // DELETE against peviitor's live API, with no way for a caller to check
+      // status safely first.
+      const inactiveRecord = { ...EXAMPLE_ANAF_RECORD, inactive: true };
+
+      mockFetch
+        .mockResolvedValueOnce(anafCompanyResponse(inactiveRecord))
+        .mockResolvedValueOnce(solrResponse(3, []));
+
+      const result = await company.validateAndGetCompany(true);
+
+      expect(result.status).toBe('inactive');
+      const deleteCall = mockFetch.mock.calls.find(([, opts]) => opts?.method === 'DELETE');
+      expect(deleteCall).toBeUndefined();
+    });
   });
 });
