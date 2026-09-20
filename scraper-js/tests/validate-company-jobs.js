@@ -16,11 +16,19 @@
  * .github/workflows/job-deep-validate.yml (--content mode).
  */
 import companyConfig from "../scraper/config/company.js";
+import scraperConfig from "../scraper/config/scraper.js";
 import { querySOLR, deleteJobByUrl } from "../scraper/api.js";
 import { validateByHead, validateByContent, validateByBrowser } from "../scraper/job-validator.js";
 
 const CIF = companyConfig.id;
 const COMPANY = companyConfig.company;
+// The same CIF can carry jobs from OTHER peviitor scrapers / aggregators
+// (eJobs, BestJobs imports, etc.) -- querySOLR(CIF) returns all of them, but
+// this script must only ever delete the ones THIS scraper owns. Without this
+// check, a URL format this scraper doesn't recognize (or a transient block
+// on someone else's site) would get silently deleted here, every night.
+const OWN_URL_PREFIX = scraperConfig.ownJobUrlPrefix;
+const isOwnJob = (url) => typeof url === "string" && url.startsWith(OWN_URL_PREFIX);
 
 function getTimeout() {
   const idx = process.argv.indexOf("--timeout");
@@ -71,12 +79,19 @@ async function main() {
     console.log(`  ${job.title} | ${job.url}`);
   }
 
+  const ours = invalid.filter((job) => isOwnJob(job.url));
+  const notOurs = invalid.filter((job) => !isOwnJob(job.url));
+  if (notOurs.length > 0) {
+    console.log(`\n${notOurs.length} invalid job(s) belong to another scraper on this CIF — never touched:`);
+    for (const job of notOurs) console.log(`  ${job.title} | ${job.url}`);
+  }
+
   if (dryRun) {
     console.log("(dry run — no deletions performed)");
     return;
   }
   if (doDelete) {
-    for (const job of invalid) {
+    for (const job of ours) {
       await deleteJobByUrl(job.url);
       console.log(`Deleted: ${job.title}`);
     }
