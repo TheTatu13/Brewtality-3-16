@@ -410,6 +410,12 @@ async function main() {
   console.log("  Ready for the first commit:");
   console.log("    git add -A && git commit -m \"Initial scraper for " + company + "\"");
   console.log(`    gh repo create ${owner}/${repo} --public --source=. --push\n`);
+  console.log("  IMPORTANT -- gh repo create does NOT set these, and the consistency");
+  console.log("  tests in CI will fail on first push without them (see ai/UPDATE-REPO-ABOUT.md):");
+  console.log(`    gh repo edit ${owner}/${repo} --add-topic job-seeker-ro-spider --add-topic peviitor-ro \\`);
+  console.log(`      --homepage "https://${owner.toLowerCase()}.github.io/${repo}/" \\`);
+  console.log(`      --description "Scraper pentru ${company} - peViitor.ro"`);
+  console.log(`    gh api -X POST repos/${owner}/${repo}/pages -f build_type=legacy -f "source[branch]=main" -f "source[path]=/docs"\n`);
   console.log("  Next: tune the selectors in " + (lang === "js" ? "scraper/config/scraper.json" : "config/scraper.json"));
   console.log("        and adapt " + (lang === "js" ? "parseListing in scraper/index.js" : "parse_listing in scraper/parse.py") + ",");
   console.log("        then run the tests (" + (lang === "js" ? "npm install && npm run test:unit" : "pip install -e \".[dev]\" && pytest -q") + ").\n");

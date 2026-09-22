@@ -337,6 +337,12 @@ def main() -> None:
     print("  Ready for the first commit:")
     print(f'    git add -A && git commit -m "Initial scraper for {company}"')
     print(f"    gh repo create {owner}/{repo} --public --source=. --push\n")
+    print("  IMPORTANT -- gh repo create does NOT set these, and the consistency")
+    print("  tests in CI will fail on first push without them (see ai/UPDATE-REPO-ABOUT.md):")
+    print(f'    gh repo edit {owner}/{repo} --add-topic job-seeker-ro-spider --add-topic peviitor-ro \\')
+    print(f'      --homepage "https://{owner.lower()}.github.io/{repo}/" \\')
+    print(f'      --description "Scraper pentru {company} - peViitor.ro"')
+    print(f'    gh api -X POST repos/{owner}/{repo}/pages -f build_type=legacy -f "source[branch]=main" -f "source[path]=/docs"\n')
     cfg = "scraper/config/scraper.json" if lang == "js" else "config/scraper.json"
     parse = "parseListing in scraper/index.js" if lang == "js" else "parse_listing in scraper/parse.py"
     test = 'npm install && npm run test:unit' if lang == "js" else 'pip install -e ".[dev]" && pytest -q'
