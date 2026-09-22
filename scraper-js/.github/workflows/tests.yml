@@ -94,6 +94,17 @@ jobs:
           # upsertCompany/padCif), which is exactly what caused a real
           # company to show up duplicated in peviitor's search dropdown.
           CIF=$(printf '%08d' "$(jq -r '.id' scraper/config/company.json)")
+
+          # Hard guard: if CIF isn't exactly 8 digits after padding, abort
+          # loudly here instead of writing a malformed/duplicate company-core
+          # record. This is what should have caught the padding regression
+          # that duplicated Aerostar/Turbomecanica/Cemacon in the search
+          # dropdown -- a bad computed CIF must fail CI, not go through.
+          if ! [[ "$CIF" =~ ^[0-9]{8}$ ]]; then
+            echo "FAILED: computed CIF '${CIF}' is not exactly 8 digits (raw id: $(jq -r '.id' scraper/config/company.json)) -- aborting before any write."
+            exit 1
+          fi
+
           LEGAL_NAME=$(jq -r '.company' scraper/config/company.json)
           BRAND=$(jq -r '.brand' scraper/config/company.json)
           WEBSITE=$(jq -r '.website[0]' scraper/config/company.json)
