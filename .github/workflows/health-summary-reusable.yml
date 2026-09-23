@@ -1,0 +1,38 @@
+name: Health Summary (reusable)
+
+# Called by each company scraper's own automation-health-summary.yml via
+# `uses:`. Same content every repo would otherwise copy-paste; kept here so
+# a fix reaches every scraper's next scheduled run automatically.
+#
+# MUST live at the repo root under .github/workflows/ -- see the comment in
+# scrape-reusable.yml (same folder) for why.
+#
+# Language-agnostic (gh CLI + stdlib python3, both preinstalled on
+# ubuntu-latest) -- shared by both the Node.js and Python derived scrapers,
+# so it lives at the root rather than under scraper-js/ or scraper-py/.
+#
+# No checkout of the CALLER repo happens here -- the digest is built purely
+# from `gh run`/`gh issue` calls against it (via GH_REPO), so there's
+# nothing in the caller's own files this job needs to read.
+
+on:
+  workflow_call:
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      actions: read
+    steps:
+      - name: Check out the template's digest script
+        uses: actions/checkout@v5
+        with:
+          repository: TheTatu13/Brewtality-3-16
+          path: _template
+
+      - name: Build and post the weekly digest
+        run: python3 _template/.github/scripts/health_summary.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
