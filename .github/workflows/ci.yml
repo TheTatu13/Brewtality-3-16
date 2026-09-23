@@ -36,6 +36,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
       - run: pytest -q
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Run the derivation script on a throwaway checkout, then run the derived
   # scraper's own tests — proves setup.js / setup.py + the result still work.
@@ -58,12 +60,25 @@ jobs:
           # auto-detect-a-selector prompt, keeping this run hermetic/offline.
           ANSWERS='${{ matrix.lang }}\nSMOKE TEST SRL\nSmoke\n99999999\nhttps://smoke.example\nhttps://smoke.example/careers/\n\n\n\nCluj-Napoca\n\n\n\nsmoke-org\n\ny\n'
           if [ "${{ matrix.lang }}" = "js" ]; then printf "$ANSWERS" | node setup.js; else printf "$ANSWERS" | python setup.py; fi
+      # GITHUB_REPOSITORY is auto-injected by Actions for every step and
+      # still points at this checkout's real identity (Brewtality-3-16) even
+      # though setup.js/setup.py just derived a *synthetic* scraper here that
+      # was never actually published. Left as-is, the derived scraper's own
+      # consistency tests would query Brewtality-3-16's real GitHub metadata
+      # (topics, visibility, Pages) against a derived-repo's expectations --
+      # a mismatch that isn't a real regression, just this smoke test having
+      # no live repo of its own to check. Blanking it here restores the same
+      # "not in CI" skip these tests already use for a local run.
       - name: Test the derived scraper (JS)
         if: matrix.lang == 'js'
         run: npm install && npm run test:unit
+        env:
+          GITHUB_REPOSITORY: ""
       - name: Test the derived scraper (Python)
         if: matrix.lang == 'py'
         run: pip install -e ".[dev]" && pytest -q
+        env:
+          GITHUB_REPOSITORY: ""
 
   # Regression test for the worktree bug: deriving from inside a linked `git
   # worktree` (not a plain clone) must NOT leave the folder falling through to
