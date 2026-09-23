@@ -343,11 +343,20 @@ def main() -> None:
     print(f'      --homepage "https://{owner.lower()}.github.io/{repo}/" \\')
     print(f'      --description "Scraper pentru {company} - peViitor.ro"')
     print(f'    gh api -X POST repos/{owner}/{repo}/pages -f build_type=legacy -f "source[branch]=main" -f "source[path]=/docs"\n')
+    print("  Also apply branch protection (blocks force-push + deletion on main;")
+    print("  does NOT require PRs/reviews -- this fleet pushes directly to main):")
+    print(f"    gh api -X PUT repos/{owner}/{repo}/branches/main/protection \\")
+    print('      -F required_status_checks=null -F enforce_admins=false \\')
+    print('      -F required_pull_request_reviews=null -F restrictions=null \\')
+    print('      -F allow_force_pushes=false -F allow_deletions=false\n')
     cfg = "scraper/config/scraper.json" if lang == "js" else "config/scraper.json"
     parse = "parseListing in scraper/index.js" if lang == "js" else "parse_listing in scraper/parse.py"
     test = 'npm install && npm run test:unit' if lang == "js" else 'pip install -e ".[dev]" && pytest -q'
     print(f"  Next: tune the selectors in {cfg} and adapt {parse},")
-    print(f"        then run the tests ({test}).\n")
+    print(f"        then run the tests ({test}).")
+    print("\n  This scraper isn't done until DEFINITION_OF_DONE.md's checklist is")
+    print("  clear (it didn't come along in the derivation -- it's a template-repo")
+    print("  doc, not a per-scraper one; read it at github.com/TheTatu13/Brewtality-3-16).\n")
 
 
 if __name__ == "__main__":

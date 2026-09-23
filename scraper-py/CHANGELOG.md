@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.0] - 2026-09-23
+
+### Added
+- `tests/consistency/test_repo.py`: `test_commit_checklist_exists` (skips in
+  the template's own checkout — `COMMIT_CHECKLIST.md` lives at the monorepo
+  root there, not under `scraper-py/`) and `test_no_leftover_placeholders`
+  (scans every derived-repo file for a leftover `{{PLACEHOLDER}}` token —
+  catches an interrupted/partial `setup.py`/`setup.js` run). Added
+  `automation-health-summary.yml` to `REQUIRED_WORKFLOWS`.
+- `setup.py` / `setup.js`: print the branch-protection `gh api` command
+  (anti-accident only — blocks force-push + branch deletion on `main`, no
+  PR/review required, since this fleet pushes directly) alongside the
+  existing GitHub Pages command, plus a pointer to `DEFINITION_OF_DONE.md`.
+- `DEFINITION_OF_DONE.md` — the checklist a derived scraper should clear
+  before being considered finished (code/tests, workflows, repo metadata,
+  documentation, first real run).
+- `ai/VERSIONING.md` — documents the `@v1` floating-tag convention: when to
+  move it forward vs. cut a breaking `@v2`.
+- `SCRAPERS.md` — point-in-time registry of every derived scraper (company,
+  repo, language, template version, status).
+
 ## [0.3.0] - 2026-09-23
 
 ### Fixed

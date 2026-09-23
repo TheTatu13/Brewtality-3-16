@@ -416,9 +416,18 @@ async function main() {
   console.log(`      --homepage "https://${owner.toLowerCase()}.github.io/${repo}/" \\`);
   console.log(`      --description "Scraper pentru ${company} - peViitor.ro"`);
   console.log(`    gh api -X POST repos/${owner}/${repo}/pages -f build_type=legacy -f "source[branch]=main" -f "source[path]=/docs"\n`);
+  console.log("  Also apply branch protection (blocks force-push + deletion on main;");
+  console.log("  does NOT require PRs/reviews -- this fleet pushes directly to main):");
+  console.log(`    gh api -X PUT repos/${owner}/${repo}/branches/main/protection \\`);
+  console.log("      -F required_status_checks=null -F enforce_admins=false \\");
+  console.log("      -F required_pull_request_reviews=null -F restrictions=null \\");
+  console.log("      -F allow_force_pushes=false -F allow_deletions=false\n");
   console.log("  Next: tune the selectors in " + (lang === "js" ? "scraper/config/scraper.json" : "config/scraper.json"));
   console.log("        and adapt " + (lang === "js" ? "parseListing in scraper/index.js" : "parse_listing in scraper/parse.py") + ",");
-  console.log("        then run the tests (" + (lang === "js" ? "npm install && npm run test:unit" : "pip install -e \".[dev]\" && pytest -q") + ").\n");
+  console.log("        then run the tests (" + (lang === "js" ? "npm install && npm run test:unit" : "pip install -e \".[dev]\" && pytest -q") + ").");
+  console.log("\n  This scraper isn't done until DEFINITION_OF_DONE.md's checklist is");
+  console.log("  clear (it didn't come along in the derivation -- it's a template-repo");
+  console.log("  doc, not a per-scraper one; read it at github.com/TheTatu13/Brewtality-3-16).\n");
 }
 
 main().catch((err) => {

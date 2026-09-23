@@ -6,6 +6,28 @@ starts its own changelog from its first release.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-09-23
+
+### Added
+- `tests/consistency/required-workflows.test.js` — one test per required
+  workflow file (mirrors the Python `REQUIRED_WORKFLOWS` list, now
+  including `automation-health-summary.yml`).
+- `tests/consistency/no-leftover-placeholders.test.js` — scans a derived
+  repo for a leftover `{{PLACEHOLDER}}` token (catches an interrupted or
+  partial `setup.js` run) and checks `COMMIT_CHECKLIST.md` exists; both
+  early-return in the template's own checkout via `isTemplateCheckout()`.
+- `setup.js` / `setup.py`: print the branch-protection `gh api` command
+  (anti-accident only — blocks force-push + branch deletion on `main`, no
+  PR/review required, since this fleet pushes directly) alongside the
+  existing GitHub Pages command, plus a pointer to `DEFINITION_OF_DONE.md`.
+- `DEFINITION_OF_DONE.md` — the checklist a derived scraper should clear
+  before being considered finished (code/tests, workflows, repo metadata,
+  documentation, first real run).
+- `ai/VERSIONING.md` — documents the `@v1` floating-tag convention: when to
+  move it forward vs. cut a breaking `@v2`.
+- `SCRAPERS.md` — point-in-time registry of every derived scraper (company,
+  repo, language, template version, status).
+
 ## [1.2.0] - 2026-09-23
 
 ### Fixed
