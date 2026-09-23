@@ -1,0 +1,7 @@
+{
+  "commit_message": "chore: example -- replace with a real change description",
+  "changes": [
+    {"lang": "py", "src": "tests/consistency/test_repo.py"},
+    {"lang": "js", "src": "tests/consistency/no-leftover-placeholders.test.js"}
+  ]
+}

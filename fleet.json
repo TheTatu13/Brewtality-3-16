@@ -1,0 +1,141 @@
+{
+  "$comment": "Single source of truth for the Brewtality-3-16 scraper fleet. SCRAPERS.md is GENERATED from this file by tools/gen_scrapers_md.py -- edit this file, not SCRAPERS.md directly. local_dir is the folder name as cloned on this machine, next to Brewtality-3-16/ (only meaningful for local tooling, not committed elsewhere).",
+  "generated_note": "Regenerate SCRAPERS.md after any edit: python tools/gen_scrapers_md.py",
+  "scrapers": [
+    {
+      "company": "ANTIBIOTICE SA",
+      "brand": "Antibiotice",
+      "cif": "1973096",
+      "owner": "TheTatu13",
+      "repo": "antibiotice-sa-nodejs-scraper",
+      "local_dir": "antibiotice-sa-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "AEROSTAR SA",
+      "brand": "AEROSTAR",
+      "cif": "950531",
+      "owner": "TheTatu13",
+      "repo": "aerostar-nodejs-scraper",
+      "local_dir": "aerostar-sa-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "TURBOMECANICA SA",
+      "brand": "Turbomecanica",
+      "cif": "3156315",
+      "owner": "TheTatu13",
+      "repo": "turbomecanica-sa-nodejs-scraper",
+      "local_dir": "turbomecanica-sa-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "CEMACON S.A.",
+      "brand": "Cemacon",
+      "cif": "677858",
+      "owner": "TheTatu13",
+      "repo": "cemacon-sa-nodejs-scraper",
+      "local_dir": "cemacon-sa-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "CRAMELE COTNARI S.A.",
+      "brand": "Cotnari",
+      "cif": "40321026",
+      "owner": "TheTatu13",
+      "repo": "cramele-cotnari-sa-nodejs-scraper",
+      "local_dir": "cramele-cotnari-sa-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "HOCHLAND ROMANIA SRL",
+      "brand": "Hochland",
+      "cif": "10666988",
+      "owner": "TheTatu13",
+      "repo": "hochland-romania-nodejs-scraper",
+      "local_dir": "hochland-romania-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "README still shows unmodified template boilerplate (cosmetic, non-blocking)"
+    },
+    {
+      "company": "VALROM INDUSTRIE SRL",
+      "brand": "Valrom",
+      "cif": "8529679",
+      "owner": "TheTatu13",
+      "repo": "valrom-industrie-python-scraper",
+      "local_dir": "valrom-industrie-python-scraper",
+      "language": "py",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "BETFAIR ROMANIA DEVELOPMENT SRL",
+      "brand": "Betfair",
+      "cif": "22201773",
+      "owner": "TheTatu13",
+      "repo": "betfair-scraper-py",
+      "local_dir": "betfair-scraper-py",
+      "language": "py",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "CRIS-TIM FAMILY HOLDING S.A.",
+      "brand": "Cris-Tim",
+      "cif": "13533870",
+      "owner": "TheTatu13",
+      "repo": "cris-tim-python-scraper",
+      "local_dir": "cris-tim-python-scraper",
+      "language": "py",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "KRONOSPAN SEBES SA",
+      "brand": "Kronospan",
+      "cif": "11358544",
+      "owner": "TheTatu13",
+      "repo": "kronospan-sebes-python-scraper",
+      "local_dir": "kronospan-sebes-python-scraper",
+      "language": "py",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "-",
+      "brand": "-",
+      "cif": null,
+      "owner": "TheTatu13",
+      "repo": "peviitor-scraper-py",
+      "local_dir": "peviitor-scraper-py",
+      "language": "py",
+      "template_version": null,
+      "status": "archived",
+      "notes": "Already on the newer reusable-workflow architecture, audited clean. Archived on GitHub (pushes rejected 403); no fixes pushed."
+    },
+    {
+      "company": "-",
+      "brand": "-",
+      "cif": null,
+      "owner": "TheTatu13",
+      "repo": "teraplast-romania-python-scraper",
+      "local_dir": "teraplast-romania-python-scraper",
+      "language": "py",
+      "template_version": null,
+      "status": "archived",
+      "notes": "Two real bugs found and fix written (dry-run gate on schedule trigger; missing contents:write permission), NOT pushed -- repo is archived. Re-apply from peviitor-scraper-py's scrape.yml if ever unarchived."
+    }
+  ]
+}

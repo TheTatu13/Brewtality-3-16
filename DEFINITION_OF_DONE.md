@@ -37,7 +37,18 @@ a `gh` command once (marked ☐ manual).
 - [ ] `job-deep-validate.yml`, `job-recovery-from-disaster.yml` — present
       (copied as-is from the template).
 
-## Repo metadata (☐ manual — `gh repo create` doesn't set any of this)
+## Repo metadata (✅ auto via `tools/setup_repo.py` — see `ai/TOOLING.md`)
+
+Run once, right after `gh repo create` (idempotent, safe to re-run):
+
+```
+python tools/setup_repo.py --repo <repo> --company "<Company Name>" \
+    --cif <CIF> --brand <Brand> --lang py|js --register
+```
+
+This does all four of the following in one shot (previously manual, one
+`gh` command copy-pasted at a time from `setup.py`/`setup.js`'s printed
+output):
 
 - [ ] Topics: `job-seeker-ro-spider`, `peviitor-ro` (see
       `ai/UPDATE-REPO-ABOUT.md`).
@@ -46,9 +57,7 @@ a `gh` command once (marked ☐ manual).
 - [ ] GitHub Pages enabled, serving from `main` / `/docs`.
 - [ ] **Branch protection on `main`**: block force-push + branch deletion
       (no PR/review required — this fleet pushes directly to `main`).
-      `setup.py`/`setup.js` now print the exact `gh api` command for this;
-      it isn't automatic because the repo doesn't exist yet when the script
-      runs.
+- [ ] (with `--register`) added to `fleet.json`, `SCRAPERS.md` regenerated.
 
 ## Documentation
 
