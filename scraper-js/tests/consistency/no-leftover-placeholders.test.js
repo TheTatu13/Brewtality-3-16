@@ -18,7 +18,12 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "../..");
 const SKIP_DIRS = new Set(["node_modules", ".git", "tmp", "coverage"]);
-const PLACEHOLDER_RX = /\{\{[A-Z_]+\}\}/;
+// Excludes the literal "PLACEHOLDER" token itself: real substitutable
+// fields are named things like {{COMPANY_NAME}} or {{CIF}}; "{{PLACEHOLDER}}"
+// is only ever used as meta-language describing the convention (in docs,
+// comments, this file's own error message), never an actual field.
+const PLACEHOLDER_RX = /\{\{(?!PLACEHOLDER\}\})[A-Z_]+\}\}/;
+const SELF_PATH = fileURLToPath(import.meta.url);
 
 function isTemplateCheckout() {
   const pkgPath = path.join(ROOT, "package.json");
@@ -47,6 +52,7 @@ describe("Consistency: No Leftover Placeholders", () => {
 
     const hits = [];
     for (const file of walk(ROOT)) {
+      if (file === SELF_PATH) continue; // this file discusses the {{TOKEN}} convention itself
       let text;
       try {
         text = fs.readFileSync(file, "utf-8");
