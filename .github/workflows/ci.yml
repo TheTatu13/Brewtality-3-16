@@ -71,14 +71,14 @@ jobs:
       # "not in CI" skip these tests already use for a local run.
       - name: Test the derived scraper (JS)
         if: matrix.lang == 'js'
-        run: npm install && npm run test:unit
-        env:
-          GITHUB_REPOSITORY: ""
+        run: |
+          unset GITHUB_REPOSITORY GITHUB_TOKEN
+          npm install && npm run test:unit
       - name: Test the derived scraper (Python)
         if: matrix.lang == 'py'
-        run: pip install -e ".[dev]" && pytest -q
-        env:
-          GITHUB_REPOSITORY: ""
+        run: |
+          unset GITHUB_REPOSITORY GITHUB_TOKEN
+          pip install -e ".[dev]" && pytest -q
 
   # Regression test for the worktree bug: deriving from inside a linked `git
   # worktree` (not a plain clone) must NOT leave the folder falling through to
