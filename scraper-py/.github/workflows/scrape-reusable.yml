@@ -1,0 +1,73 @@
+name: Scrape (reusable)
+
+# Called by each company scraper's own scrape.yml via `uses:`. Keeping this
+# logic in ONE place means a fix here reaches every scraper on their next
+# run, instead of being copy-pasted (and drifting) across N repos.
+#
+# The dry-run gate is a caller responsibility: the caller computes a real
+# boolean once (see scrape.yml in this same folder for the canonical caller
+# pattern) and passes it in via `with: dry_run:` -- this avoids the historic
+# bug where comparing
+# `github.event.inputs.dry_run` (empty string on `schedule`) to `"false"`
+# silently forced every cron run into dry-run forever.
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Run without writing to the API'
+        type: boolean
+        default: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Pre-scrape tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pip install -e ".[dev]" && pytest -q
+      - name: Run scraper
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python -m scraper.main --dry-run
+          else
+            python -m scraper.main
+          fi
+
+      - name: Push docs/ back to the repo
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/jobs.md docs/company.json company.json 2>/dev/null || true
+          git commit -m "[skip ci] Update scraped jobs" || echo "No changes to commit"
+          git push || echo "Push failed (race condition) -- will be picked up next run"
+
+  autoheal:
+    runs-on: ubuntu-latest
+    needs: scrape
+    if: failure()
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create auto-heal --color d73a4a --description "Automated failure of a scheduled workflow" -R "${{ github.repository }}" 2>/dev/null || true
+          EXISTING=$(gh issue list --label auto-heal --state open --search "Auto-heal: scrape in:title" --json number --jq '.[0].number // empty' -R "${{ github.repository }}")
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "Another run failed: ${RUN_URL} ($(date -u +%FT%TZ))." -R "${{ github.repository }}"
+          else
+            gh issue create --title "Auto-heal: scrape workflow failed $(date -u +%Y-%m-%d)" --label auto-heal \
+              --body "The Scrape workflow failed. Run: ${RUN_URL}. Likely a broken listing selector (the canary aborts at 0 jobs), an api.peviitor.ro outage, or a failed pre-scrape test." \
+              -R "${{ github.repository }}"
+          fi

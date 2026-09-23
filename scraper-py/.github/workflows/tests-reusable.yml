@@ -1,0 +1,36 @@
+name: Tests (reusable)
+
+# Called by each company scraper's own tests.yml via `uses:`. Same content
+# every repo used to copy-paste; now it lives once.
+
+on:
+  workflow_call:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pytest -q
+
+  pytest-with-scrapling:
+    runs-on: ubuntu-latest
+    continue-on-error: true  # optional dependency — don't block the build if it can't install
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,adaptive]"
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pytest -q
