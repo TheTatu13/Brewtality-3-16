@@ -385,7 +385,15 @@ async function main() {
 
   rmrf(path.join(ROOT, dropDir));
   // template-only root files — the variant brings its own
-  for (const f of [".github", "README.md", "CLAUDE.md", ".gitignore", "setup.py"]) {
+  for (const f of [
+    ".github", "README.md", "CLAUDE.md", ".gitignore", "setup.py",
+    // fleet-management files that live at the template root only -- a
+    // derived repo gets none of this (bug found by
+    // tools/derive_new_scraper.py's first real test run: these were
+    // silently carried into the derived repo because this list never got
+    // updated when Faza 4 added them to the template root).
+    "SCRAPERS.md", "DEFINITION_OF_DONE.md", "fleet.json", "tools", "changes",
+  ]) {
     rmrf(path.join(ROOT, f));
   }
   rmrf(path.join(ROOT, ".git"));

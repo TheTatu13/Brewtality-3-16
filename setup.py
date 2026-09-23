@@ -313,7 +313,15 @@ def main() -> None:
     pkg_name = f"{slug}-scraper"
 
     rmrf(ROOT / drop_dir)
-    for name in (".github", "README.md", "CLAUDE.md", ".gitignore", "setup.js"):
+    for name in (
+        ".github", "README.md", "CLAUDE.md", ".gitignore", "setup.js",
+        # fleet-management files that live at the template root only --
+        # a derived repo gets its own copy of nothing here (bug found by
+        # tools/derive_new_scraper.py's first real test run: these were
+        # silently carried into the derived repo because this list never
+        # got updated when Faza 4 added them to the template root).
+        "SCRAPERS.md", "DEFINITION_OF_DONE.md", "fleet.json", "tools", "changes",
+    ):
         rmrf(ROOT / name)
     rmrf(ROOT / ".git")
     reinit_git(was_worktree)

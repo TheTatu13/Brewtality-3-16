@@ -85,7 +85,10 @@ def apply_branch_protection(owner: str, repo: str, dry_run: bool) -> bool:
     return run(cmd, dry_run)
 
 
-def register_in_fleet(args: argparse.Namespace) -> None:
+def register_in_fleet(args: argparse.Namespace, dry_run: bool) -> None:
+    if dry_run:
+        print(f"  (dry-run: would add {args.repo} to fleet.json and regenerate SCRAPERS.md)")
+        return
     fleet = json.loads(FLEET_JSON.read_text(encoding="utf-8"))
     if any(s["repo"] == args.repo for s in fleet["scrapers"]):
         print(f"  {args.repo} already in fleet.json -- skipping registration")
@@ -134,7 +137,7 @@ def main() -> None:
 
     if args.register:
         print("4. Register in fleet.json")
-        register_in_fleet(args)
+        register_in_fleet(args, args.dry_run)
 
     if not ok:
         print("\nSome steps failed -- see output above. Re-run once the underlying issue is fixed; every step is safe to repeat.")
