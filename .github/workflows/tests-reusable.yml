@@ -2,6 +2,9 @@ name: Tests (reusable)
 
 # Called by each company scraper's own tests.yml via `uses:`. Same content
 # every repo used to copy-paste; now it lives once.
+#
+# MUST live at the repo root under .github/workflows/ -- see the comment in
+# scrape-reusable.yml (same folder) for why.
 
 on:
   workflow_call:

@@ -21,6 +21,9 @@ on:
 jobs:
   scrape:
     uses: TheTatu13/Brewtality-3-16/.github/workflows/scrape-reusable.yml@v1
+    # NOTE: this path is the template repo's ROOT .github/workflows/ folder,
+    # not scraper-py/.github/workflows/ — GitHub only resolves `uses:`
+    # references from a repo's root workflows directory.
     with:
       # Computed once, here, instead of inside the reusable workflow: a
       # `schedule` run has no `inputs` context, so `github.event.inputs.dry_run`

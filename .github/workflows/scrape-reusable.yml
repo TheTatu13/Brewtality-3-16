@@ -4,10 +4,14 @@ name: Scrape (reusable)
 # logic in ONE place means a fix here reaches every scraper on their next
 # run, instead of being copy-pasted (and drifting) across N repos.
 #
+# MUST live at the repo root under .github/workflows/ -- GitHub Actions does
+# not resolve `uses:` references into a subdirectory's .github/workflows/
+# (e.g. scraper-py/.github/workflows/), only the repo root's.
+#
 # The dry-run gate is a caller responsibility: the caller computes a real
-# boolean once (see scrape.yml in this same folder for the canonical caller
-# pattern) and passes it in via `with: dry_run:` -- this avoids the historic
-# bug where comparing
+# boolean once (see scraper-py/.github/workflows/scrape.yml for the
+# canonical caller pattern to copy into a new scraper repo) and passes it in
+# via `with: dry_run:` -- this avoids the historic bug where comparing
 # `github.event.inputs.dry_run` (empty string on `schedule`) to `"false"`
 # silently forced every cron run into dry-run forever.
 

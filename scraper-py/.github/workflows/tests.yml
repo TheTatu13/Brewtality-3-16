@@ -13,4 +13,6 @@ on:
 
 jobs:
   tests:
+    # NOTE: this path is the template repo's ROOT .github/workflows/ folder,
+    # not scraper-py/.github/workflows/ — see scrape.yml's note.
     uses: TheTatu13/Brewtality-3-16/.github/workflows/tests-reusable.yml@v1
