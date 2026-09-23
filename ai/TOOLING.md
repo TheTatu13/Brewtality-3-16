@@ -100,3 +100,68 @@ unrelated third-party aggregator scraper, not necessarily this repo's own
 Requires `gh` CLI authenticated. The peviitor.ro API call needs a
 browser-like `User-Agent` header -- the default Python `urllib` one gets
 a 403 from its WAF/CDN.
+
+## `tools/derive_new_scraper.py` -- full pipeline: one company in, one live repo out
+
+Drives `setup.py`/`setup.js` non-interactively (both already support piped
+stdin -- no changes needed there beyond the deletion-list fix below), then
+chains everything that used to be manual: commit, `gh repo create` + push,
+`setup_repo.py --register`, `verify_fleet.py`. One command, one company:
+
+```
+python tools/derive_new_scraper.py --lang py \
+    --company "EXEMPLU SRL" --cif 12345678 --brand Exemplu \
+    --website https://exemplu.ro --career https://exemplu.ro/cariere \
+    --city Bucuresti
+```
+
+Always try `--dry-run` first for an unfamiliar company. `--repo` overrides
+the auto-generated name (`<slug>-nodejs-scraper` / `<slug>-python-scraper`).
+Selector auto-detection is always skipped (answered "n") for determinism in
+a batch -- tune `config/scraper.json`'s selectors by hand afterward, same
+as `DEFINITION_OF_DONE.md` already asks for every new scraper.
+
+Resumable: if `../<repo>/` already exists, the clone+setup step is skipped
+(assumes it's already derived); if the GitHub repo already exists, it
+pushes to it instead of failing. Safe to re-run after a partial failure.
+
+## `tools/batch_derive.py` -- the actual "90 companies" entry point
+
+Runs `derive_new_scraper.py` once per row of a CSV:
+
+```
+python tools/batch_derive.py --csv changes/companies.csv
+python tools/batch_derive.py --csv changes/companies.csv --dry-run       # sanity-check the whole sheet first
+python tools/batch_derive.py --csv changes/companies.csv --only-row 3    # test one row
+python tools/batch_derive.py --csv changes/companies.csv --start-at 15  # resume after a partial run
+```
+
+CSV columns (see `changes/COMPANIES_EXAMPLE.csv`): required --
+`company, cif, brand, website, career, city, lang` (lang is `py` or `js`);
+optional -- `sitemap, job_prefix, sel_article, sel_title, sel_meta, owner, repo`.
+This is the format to hand Alexandra: one row per company, and the batch
+handles the rest. One bad row (bad URL, missing CIF) is reported and
+skipped -- it doesn't stop the other 89.
+
+**Before running this on all 90 for real:** run `--dry-run` on the whole
+sheet first to catch typos/missing columns, then `--only-row` on 2-3 real
+entries end-to-end (real GitHub repos, real `gh` calls) to catch anything
+sheet-specific before committing to all of them in one sitting.
+
+## Known limits of this pipeline (read before scaling to 90)
+
+- **A `gh api` rate limit is real at this volume.** ~90 derivations means
+  ~90 `gh repo create` + several `gh api`/`gh repo edit` calls each,
+  authenticated (5000/hour) but still worth batching in a few sittings
+  rather than one continuous run if `gh` starts throwing 403s.
+- **Selectors are never auto-tuned.** Every derived scraper still needs a
+  human pass over `config/scraper.json` against the real careers page --
+  this pipeline gets a scraper to "exists, has CI, is registered", not to
+  "actually finds the right jobs". `DEFINITION_OF_DONE.md`'s checklist
+  still applies per scraper.
+- **The template's own root must stay clean.** Any new file added to the
+  template root (like `SCRAPERS.md`/`DEFINITION_OF_DONE.md`/`fleet.json`/
+  `tools/`/`changes/` were, until this was caught) needs adding to the
+  deletion list in *both* `setup.py` and `setup.js`, or it silently leaks
+  into every derived repo. This bit us on this pipeline's own first real
+  test run -- caught before it reached a real company, not after.
