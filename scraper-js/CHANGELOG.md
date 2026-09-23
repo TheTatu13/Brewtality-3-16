@@ -6,6 +6,18 @@ starts its own changelog from its first release.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-23
+
+### Added
+- `tests/unit/api.test.js`: regression tests for the CIF zero-padding bug
+  family — assert the actual outgoing request (URL query param or JSON
+  body) is padded to 8 digits for every call site that touches a CIF
+  (`getCompanyByCif`, `querySOLR`, `upsertCompany`, `deleteJobsByCIF`,
+  `upsertJobs`). `padCif()` itself was already applied consistently
+  everywhere (verified across all derived repos), but nothing guarded that
+  behaviour against a future regression — a stale copy missing the padding
+  is exactly how the historical company-core duplicate records happened.
+
 ## [1.0.0] - 2026-09-10
 
 ### Added

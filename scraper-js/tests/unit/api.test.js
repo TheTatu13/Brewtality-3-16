@@ -143,6 +143,84 @@ describe('scraper/api.js', () => {
     });
   });
 
+  // Regression tests for the CIF zero-padding bug family: several derived
+  // scrapers historically produced duplicate company-core records because a
+  // stale copy of api.js sent an unpadded CIF while other call sites (or the
+  // company-core CI job) used the padded 8-digit form as the key. padCif()
+  // itself is not exported, so these assert on the actual outgoing request
+  // (URL query param or JSON body) for every call site that touches a CIF —
+  // a change that silently drops the padding again would fail here instead
+  // of shipping a new duplicate.
+  describe('CIF zero-padding (regression)', () => {
+    const SHORT_CIF = '176747'; // 6 digits — a real CIF shorter than 8 digits
+    const PADDED_CIF = '00176747';
+
+    it('getCompanyByCif pads the CIF in the query string', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({ success: true, data: [] }));
+
+      await solr.getCompanyByCif(SHORT_CIF);
+
+      const [calledUrl] = mockFetch.mock.calls[0];
+      expect(calledUrl).toContain(`cif=${PADDED_CIF}`);
+      expect(calledUrl).not.toContain(`cif=${SHORT_CIF}&`);
+      expect(calledUrl.endsWith(`cif=${SHORT_CIF}`)).toBe(false);
+    });
+
+    it('querySOLR pads the CIF in the query string', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({ total: 0, data: [] }));
+
+      await solr.querySOLR(SHORT_CIF);
+
+      const [calledUrl] = mockFetch.mock.calls[0];
+      expect(calledUrl).toContain(`cif=${PADDED_CIF}`);
+    });
+
+    it('upsertCompany pads the id field in the request body', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({ success: true }));
+
+      await solr.upsertCompany({ id: SHORT_CIF, company: 'TEST COMPANY' });
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.id).toBe(PADDED_CIF);
+    });
+
+    it('deleteJobsByCIF pads the cif field in the request body', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({ count: 0 }));
+
+      await solr.deleteJobsByCIF(SHORT_CIF);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.cif).toBe(PADDED_CIF);
+    });
+
+    it('upsertJobs pads every job\'s cif field in the request body', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({ count: 2 }));
+
+      await solr.upsertJobs([
+        { url: 'https://test.com/1', cif: SHORT_CIF },
+        { url: 'https://test.com/2', cif: SHORT_CIF },
+      ]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body).toHaveLength(2);
+      for (const job of body) {
+        expect(job.cif).toBe(PADDED_CIF);
+      }
+    });
+
+    it('already-padded CIFs pass through unchanged (idempotent)', async () => {
+      mockFetch.mockResolvedValue(makeJsonResponse({ total: 0, data: [] }));
+
+      await solr.querySOLR(PADDED_CIF);
+
+      const [calledUrl] = mockFetch.mock.calls[0];
+      expect(calledUrl).toContain(`cif=${PADDED_CIF}`);
+    });
+  });
+
   describe('Data Integrity', () => {
     it('should not have duplicate URLs for same CIF', async () => {
       mockFetch.mockResolvedValue(makeJsonResponse({
