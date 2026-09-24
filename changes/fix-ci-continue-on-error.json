@@ -1,0 +1,6 @@
+{
+  "commit_message": "fix(ci): don't let live demoanaf.ro test dependencies block scraping\n\nPropagated from the Brewtality-3-16 template (commit 47b796b). tests/unit/demoanaf.test.js and tests/integration/workflow.test.js call anaf.searchCompany() live and unmocked; without continue-on-error on any pre/post-scrape test step, a demoanaf.ro outage (both it and the cuifirma.ro fallback) could silently stop this scraper from ever running -- exactly what happened to sebiboga/sennder-bucharest-srl-nodejs-scraper on 2026-09-24. Made the pre-scrape unit, pre-scrape integration, and post-scrape E2E steps continue-on-error: true; test results are still generated and uploaded as before.",
+  "changes": [
+    {"lang": "js", "src": ".github/workflows/scrape.yml"}
+  ]
+}
