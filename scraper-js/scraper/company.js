@@ -27,6 +27,69 @@ const ROOT_CACHE_PATH = "company.json";
 const TMP_CACHE_PATH = "tmp/company.json";
 
 // ============================================================================
+// COMPANY MODEL - schema for the peviitor company-core document
+// ============================================================================
+
+/**
+ * Declarative schema for a peviitor company-core document, mirrored from the
+ * shape "Ensure company exists in company core" (scrape.yml) upserts and
+ * from api.peviitor.ro/v1/company/'s response shape. Used by
+ * validateCompanyModel() so a consistency test can assert the *live* record
+ * still has the fields/types/status the fleet relies on, instead of only
+ * checking that our own upsert payload looked right.
+ */
+export const COMPANY_MODEL_FIELDS = [
+  { name: "id", required: true, type: "string" },
+  { name: "company", required: true, type: "string" },
+  { name: "brand", required: false, type: "string" },
+  { name: "group", required: false, type: "string" },
+  { name: "status", required: false, type: "string", allowed: ["activ", "suspendat", "inactiv", "radiat"] },
+  { name: "location", required: false, type: "array" },
+  { name: "website", required: false, type: "array" },
+  { name: "career", required: false, type: "array" },
+  { name: "lastScraped", required: false, type: "string" },
+  { name: "scraperFile", required: false, type: "string" }
+];
+
+/**
+ * Validates a company-core document against COMPANY_MODEL_FIELDS.
+ * @param {Object} data - the document to check (e.g. a live peviitor record).
+ * @returns {{ valid: boolean, errors: string[], extraFields: string[] }}
+ */
+export function validateCompanyModel(data) {
+  const errors = [];
+
+  if (!data || typeof data !== "object") {
+    return { valid: false, errors: ["No company document provided"], extraFields: [] };
+  }
+
+  for (const field of COMPANY_MODEL_FIELDS) {
+    const value = data[field.name];
+
+    if (field.required && (value === undefined || value === null || value === "")) {
+      errors.push(`Missing required field: ${field.name}`);
+      continue;
+    }
+    if (value === undefined || value === null) continue;
+
+    if (field.type === "string" && typeof value !== "string") {
+      errors.push(`Field ${field.name} should be string, got ${typeof value}`);
+    }
+    if (field.type === "array" && !Array.isArray(value)) {
+      errors.push(`Field ${field.name} should be array, got ${typeof value}`);
+    }
+    if (field.allowed && !field.allowed.includes(value)) {
+      errors.push(`Field ${field.name} has invalid value "${value}". Allowed: ${field.allowed.join(", ")}`);
+    }
+  }
+
+  const allowedFields = COMPANY_MODEL_FIELDS.map((f) => f.name);
+  const extraFields = Object.keys(data).filter((k) => !allowedFields.includes(k));
+
+  return { valid: errors.length === 0, errors, extraFields };
+}
+
+// ============================================================================
 // PEVIITOR API
 // ============================================================================
 
