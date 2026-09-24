@@ -35,6 +35,15 @@ jobs:
           python-version: "3.12"
       - run: pip install -e .
       - name: Pre-scrape tests
+        # Non-blocking, defense in depth: tests/test_anaf.py already mocks
+        # demoanaf.ro/cuifirma.ro with requests_mock, and
+        # tests/integration/test_company_real.py self-skips when neither
+        # provider is reachable -- but a live external test dependency must
+        # never be able to stop "Run scraper" below, whatever the reason it
+        # fails. That exact failure mode (no continue-on-error anywhere, one
+        # flaky test step blocking scraping for days) took down a
+        # fleet-adjacent scraper on 2026-09-24.
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pip install -e ".[dev]" && pytest -q
