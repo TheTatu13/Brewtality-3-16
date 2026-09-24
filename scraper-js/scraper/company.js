@@ -189,7 +189,9 @@ export async function getCompanyData() {
 export async function validateAndGetCompany(dryRun = false) {
   console.log("=== Step 1: Validate company via ANAF ===\n");
 
-  const { company, cif, active, anafData } = await getCompanyData();
+  const companyData = await getCompanyData();
+  let company = companyData.company;
+  const { cif, active, anafData } = companyData;
 
   console.log("\n=== Step 2: Check existing jobs in SOLR ===\n");
   const solrResult = await querySOLR(cif);
@@ -198,7 +200,13 @@ export async function validateAndGetCompany(dryRun = false) {
   console.log("\n=== Step 3: Validate via Peviitor ===\n");
   let peviitorData = null;
   try {
-    peviitorData = await getCompanyFromPeviitor(COMPANY_BRAND);
+    // Peviitor's own search is an exact, case-sensitive match against the
+    // legal name it already has stored (uppercase) -- querying with the
+    // brand (e.g. "Hochland" against a stored "HOCHLAND ...") never
+    // matches, so this silently returned no record, and every job/company
+    // write below fell back to ANAF's freshly fetched name instead of
+    // whatever peviitor already had indexed.
+    peviitorData = await getCompanyFromPeviitor(COMPANY_LEGAL_NAME.toUpperCase());
     console.log("Peviitor data fetched successfully");
   } catch (e) {
     console.log("Peviitor API error:", e.message);
@@ -206,6 +214,17 @@ export async function validateAndGetCompany(dryRun = false) {
 
   if (anafData) {
     saveCompanyData(anafData, peviitorData);
+  }
+
+  // Prefer the name peviitor already has on file for this CIF: ANAF's
+  // spelling (diacritics, spacing) can drift from what's already indexed
+  // and faceted on the site, and peviitor's company-core upsert does not
+  // reliably rewrite an existing "company" field -- so a job tagged with
+  // ANAF's fresh name can permanently mismatch the site's "Companie"
+  // filter even though free-text search still finds it. Only fall back to
+  // ANAF's name for a company peviitor has never seen before.
+  if (peviitorData?.company) {
+    company = peviitorData.company;
   }
 
   if (!active) {
