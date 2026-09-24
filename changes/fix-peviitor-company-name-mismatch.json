@@ -1,0 +1,7 @@
+{
+  "commit_message": "fix: use peviitor's own canonical company name, not ANAF's, for job/company records\n\nFleet-wide propagation of a real bug found via a live report (Hochland\nscraper showing 0 results when filtered by company on peviitor.ro, despite\nfree-text search finding its jobs fine). See Brewtality-3-16 commit ce99d17\nfor the full root-cause writeup.\n\nQueries peviitor by the uppercased legal name (its search is exact,\ncase-sensitive) and, when a record is found, uses its company field as the\ncanonical name for job records and future company-core upserts instead of\nANAF's freshly fetched name.",
+  "changes": [
+    {"lang": "js", "src": "scraper/company.js"},
+    {"lang": "py", "src": "scraper/company.py"}
+  ]
+}
