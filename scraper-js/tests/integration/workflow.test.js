@@ -34,6 +34,16 @@ const COMPANY_NAME = companyConfig.company;
 // while the company config / company core keep the real CIF. Compare loosely.
 const cifMatches = (value) => String(value).replace(/^0+/, '') === COMPANY_CIF.replace(/^0+/, '');
 
+// ANAF returns the official legal name with Romanian diacritics (e.g. "...
+// ROMÂNIA..."), which may not match company.json's spelling if that field is
+// also used as a live SOLR search key elsewhere (docs/index.html job lookups,
+// company.js's peviitor reconciliation) against already-indexed records with
+// the ASCII spelling. Compare diacritic-insensitively so a real ANAF/internal
+// naming difference doesn't masquerade as a broken test — found in production
+// on hochland-romania-nodejs-scraper (2026-09-25).
+const stripDiacritics = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '');
+const namesMatch = (a, b) => stripDiacritics(a).toUpperCase() === stripDiacritics(b).toUpperCase();
+
 async function checkApiAvailability() {
   try {
     const res = await fetch(`${API_BASE}/scraper/jobs/?cif=${COMPANY_CIF}&rows=1`, {
@@ -99,7 +109,7 @@ describe('Integration: API Workflow', () => {
       const data = await anaf.getCompanyFromANAF(COMPANY_CIF);
 
       expect(data).toBeDefined();
-      expect(data.name).toBe(COMPANY_NAME);
+      expect(namesMatch(data.name, COMPANY_NAME)).toBe(true);
       expect(data).toHaveProperty('address');
       expect(data).toHaveProperty('registrationNumber');
       expect(data).toHaveProperty('caenCode');
@@ -253,7 +263,7 @@ describe('Integration: API Workflow', () => {
       expect(matchedCompany).toBeDefined();
 
       const anafData = await anaf.getCompanyFromANAF(matchedCompany.cui.toString());
-      expect(anafData.name).toBe(COMPANY_NAME);
+      expect(namesMatch(anafData.name, COMPANY_NAME)).toBe(true);
       expect(anafData.inactive).toBe(false);
     }, 30000);
 
