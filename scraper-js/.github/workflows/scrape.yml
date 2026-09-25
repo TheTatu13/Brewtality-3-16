@@ -161,6 +161,37 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate test-results index
+        # docs/test-results/ only ever gets the 4 individual report files
+        # (pre-scrape-unit.html, pre-scrape-integration.html, post-scrape.html,
+        # post-scrape-consistency.html) -- there was never an index.html, so
+        # GitHub Pages 404s on the directory itself and the "Rezultate Teste"
+        # button on docs/index.html links to a dead page. Every scraper in the
+        # fleet had this bug. Build a tiny index linking whichever reports
+        # exist (continue-on-error above means some steps may not have run).
+        if: always()
+        run: |
+          mkdir -p docs/test-results
+          COMPANY_NAME=$(jq -r '.company' scraper/config/company.json 2>/dev/null || echo "Scraper")
+          {
+            echo "<!DOCTYPE html><html lang=\"ro\"><head><meta charset=\"UTF-8\">"
+            echo "<title>Rezultate teste — ${COMPANY_NAME}</title>"
+            echo "<style>body{font-family:'Inter',-apple-system,sans-serif;background:#fdf6f0;color:#2d2a24;max-width:640px;margin:2rem auto;padding:0 1.5rem;}h1{color:#c44536;font-size:1.3rem;}ul{list-style:none;padding:0;}li{margin:0.6rem 0;}a{color:#c44536;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline}.missing{color:#9a8a7a}</style>"
+            echo "</head><body><h1>Rezultate teste — ${COMPANY_NAME}</h1><ul>"
+            add_entry() {
+              if [ -f "docs/test-results/$1.html" ]; then
+                echo "<li><a href=\"$1.html\">$2</a></li>"
+              else
+                echo "<li class=\"missing\">$2 (nu a rulat încă)</li>"
+              fi
+            }
+            add_entry pre-scrape-unit "Pre-scrape — Unit Tests"
+            add_entry pre-scrape-integration "Pre-scrape — Integration Tests"
+            add_entry post-scrape "Post-scrape — E2E Tests"
+            add_entry post-scrape-consistency "Post-scrape — Consistency Tests"
+            echo "</ul><p><a href=\"../\">&larr; Înapoi</a></p></body></html>"
+          } > docs/test-results/index.html
+
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v7
