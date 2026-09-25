@@ -100,7 +100,8 @@ jobs:
         run: |
           mkdir -p docs/test-results
           npm run test:unit
-          sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Unit Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Unit Tests — {{COMPANY_NAME}}</h1>|' test-report.html
+          COMPANY_NAME=$(jq -r '.company' scraper/config/company.json)
+          sed -i "s|<title>Test Report</title>|<title>Pre-scrape: Unit Tests — ${COMPANY_NAME}</title>|;s|<h1 id=\"title\">Test Report</h1>|<h1 id=\"title\">Pre-scrape: Unit Tests — ${COMPANY_NAME}</h1>|" test-report.html
           cp test-report.html docs/test-results/pre-scrape-unit.html || true
 
       - name: Pre-scrape — Integration Tests
@@ -111,7 +112,8 @@ jobs:
         run: |
           mkdir -p docs/test-results
           npm run test:integration
-          sed -i 's|<title>Test Report</title>|<title>Pre-scrape: Integration Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Pre-scrape: Integration Tests — {{COMPANY_NAME}}</h1>|' test-report.html
+          COMPANY_NAME=$(jq -r '.company' scraper/config/company.json)
+          sed -i "s|<title>Test Report</title>|<title>Pre-scrape: Integration Tests — ${COMPANY_NAME}</title>|;s|<h1 id=\"title\">Test Report</h1>|<h1 id=\"title\">Pre-scrape: Integration Tests — ${COMPANY_NAME}</h1>|" test-report.html
           cp test-report.html docs/test-results/pre-scrape-integration.html || true
 
       - name: Run scraper
@@ -144,14 +146,16 @@ jobs:
         run: |
           mkdir -p docs/test-results
           npm run test:e2e
-          sed -i 's|<title>Test Report</title>|<title>Post-scrape: E2E Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: E2E Tests — {{COMPANY_NAME}}</h1>|' test-report.html
+          COMPANY_NAME=$(jq -r '.company' scraper/config/company.json)
+          sed -i "s|<title>Test Report</title>|<title>Post-scrape: E2E Tests — ${COMPANY_NAME}</title>|;s|<h1 id=\"title\">Test Report</h1>|<h1 id=\"title\">Post-scrape: E2E Tests — ${COMPANY_NAME}</h1>|" test-report.html
           cp test-report.html docs/test-results/post-scrape.html || true
 
       - name: Consistency Tests
         run: |
           mkdir -p docs/test-results
           npm run test:consistency
-          sed -i 's|<title>Test Report</title>|<title>Post-scrape: Consistency Tests — {{COMPANY_NAME}}</title>|;s|<h1 id="title">Test Report</h1>|<h1 id="title">Post-scrape: Consistency Tests — {{COMPANY_NAME}}</h1>|' test-report.html
+          COMPANY_NAME=$(jq -r '.company' scraper/config/company.json)
+          sed -i "s|<title>Test Report</title>|<title>Post-scrape: Consistency Tests — ${COMPANY_NAME}</title>|;s|<h1 id=\"title\">Test Report</h1>|<h1 id=\"title\">Post-scrape: Consistency Tests — ${COMPANY_NAME}</h1>|" test-report.html
           cp test-report.html docs/test-results/post-scrape-consistency.html || true
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
