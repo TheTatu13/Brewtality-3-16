@@ -180,11 +180,12 @@ jobs:
           add_nav post-scrape "E2E"
           add_nav post-scrape-consistency "Consistency"
           NAVBAR="<div data-pv-navbar style=\"font-family:'JetBrains Mono',monospace;background:#131317;border-bottom:2px solid #e0122a;color:#9a9fac;padding:.6rem 1.1rem;font-size:.75rem;letter-spacing:.04em\"><a href=\"../\" style=\"color:#e0122a;text-decoration:none;font-weight:700\">&larr; DASHBOARD</a>${NAV_ITEMS}</div>"
+          NAVBAR_ESC=$(printf '%s' "$NAVBAR" | sed 's/[&\]/\\&/g')
           for f in docs/test-results/*.html; do
             [ -f "$f" ] || continue
             case "$f" in */index.html) continue;; esac
             grep -q "data-pv-navbar" "$f" 2>/dev/null && continue
-            sed -i "s|<body>|<body>${NAVBAR}|" "$f" || true
+            sed -i "s|<body>|<body>${NAVBAR_ESC}|" "$f" || true
           done
           {
             echo "<!DOCTYPE html><html lang=\"ro\"><head><meta charset=\"UTF-8\">"
