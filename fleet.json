@@ -136,6 +136,29 @@
       "template_version": null,
       "status": "archived",
       "notes": "Two real bugs found and fix written (dry-run gate on schedule trigger; missing contents:write permission), NOT pushed -- repo is archived. Re-apply from peviitor-scraper-py's scrape.yml if ever unarchived."
+    },
+    {
+      "company": "KINGFISHER INFORMATION TECHNOLOGY SERVICES (ROMANIA) S.R.L.",
+      "brand": "Kingfisher",
+      "cif": "51987250",
+      "owner": "TheTatu13",
+      "repo": "kingfisher-plc-nodejs-scraper",
+      "local_dir": "kingfisher-plc-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active"
+    },
+    {
+      "company": "MEJIX SRL",
+      "brand": "MEJIX",
+      "cif": "17372688",
+      "owner": "TheTatu13",
+      "repo": "mejix-srl-nodejs-scraper",
+      "local_dir": "mejix-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Was never registered here after the sebiboga transfer -- GitHub Pages wasn't even enabled (fixed 2026-09-25) and homepage URL still pointed at sebiboga.github.io (fixed). Uses the older flat scraper/ layout (no scraper/ subfolder) and the job-seeker-ro-spider.yml workflow name."
     }
   ]
 }
