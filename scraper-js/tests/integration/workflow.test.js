@@ -7,13 +7,18 @@ let HAS_API = false;
 
 let HAS_ANAF = false;
 
+// demoanaf.ro's free API tier was sunset 2026-08-21 (permanent HTTP 402 on
+// every /api/* call). anaf.js already falls back to cuiscan.ro/cuifirma.ro
+// when demoanaf.ro fails, so "is ANAF available" must reflect that fallback
+// chain — probing demoanaf.ro alone would leave these tests pending forever.
 async function checkAnafAvailability() {
   try {
-    const res = await fetch('https://demoanaf.ro/api/search?q=test', {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(5000)
-    });
-    return res.ok;
+    const [demoanaf, cuifirma] = await Promise.allSettled([
+      fetch('https://demoanaf.ro/api/search?q=test', { method: 'HEAD', signal: AbortSignal.timeout(5000) }),
+      fetch('https://cuifirma.ro/api/search?q=test', { signal: AbortSignal.timeout(5000) }),
+    ]);
+    return (demoanaf.status === 'fulfilled' && demoanaf.value.ok) ||
+           (cuifirma.status === 'fulfilled' && cuifirma.value.ok);
   } catch {
     return false;
   }

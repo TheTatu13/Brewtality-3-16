@@ -26,13 +26,25 @@ const itLive = gate(CONFIGURED);
 const itIfApi = (name, fn, t) => gate(CONFIGURED && HAS_API)(name, fn, t);
 const itIfAnaf = (name, fn, t) => gate(CONFIGURED && HAS_ANAF)(name, fn, t);
 
+// demoanaf.ro's free API tier was sunset 2026-08-21 (permanent HTTP 402 on
+// every /api/* call). anaf.js already falls back to cuiscan.ro/cuifirma.ro
+// when demoanaf.ro fails, so "is ANAF available" must reflect that fallback
+// chain — probing demoanaf.ro alone would leave these tests pending forever.
+async function checkAnafAvailability() {
+  const [demoanaf, cuifirma] = await Promise.allSettled([
+    fetch('https://demoanaf.ro/api/search?q=test', { method: 'HEAD', signal: AbortSignal.timeout(5000) }),
+    fetch('https://cuifirma.ro/api/search?q=test', { signal: AbortSignal.timeout(5000) }),
+  ]);
+  return (demoanaf.status === 'fulfilled' && demoanaf.value.ok) ||
+         (cuifirma.status === 'fulfilled' && cuifirma.value.ok);
+}
+
 beforeAll(async () => {
   if (!CONFIGURED) return;
   [HAS_API, HAS_ANAF] = await Promise.all([
     fetch(`${API_BASE}/scraper/jobs/?cif=${TEST_CIF}&rows=1`, { signal: AbortSignal.timeout(5000) })
       .then(r => r.ok || r.status === 400).catch(() => false),
-    fetch('https://demoanaf.ro/api/search?q=test', { method: 'HEAD', signal: AbortSignal.timeout(5000) })
-      .then(r => r.ok).catch(() => false),
+    checkAnafAvailability().catch(() => false),
   ]);
 });
 
