@@ -26,7 +26,7 @@ jobs:
       actions: read
     steps:
       - name: Check out the template's digest script
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: TheTatu13/Brewtality-3-16
           path: _template
