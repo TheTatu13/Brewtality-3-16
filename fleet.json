@@ -171,6 +171,18 @@
       "template_version": "v1",
       "status": "active",
       "notes": "Was never registered here after the sebiboga transfer -- GitHub Pages wasn't even enabled (fixed 2026-09-25) and homepage URL still pointed at sebiboga.github.io (fixed). Uses the older flat scraper/ layout (no scraper/ subfolder) and the job-seeker-ro-spider.yml workflow name."
+    },
+    {
+      "company": "EVOLUTION PRODUCTS RO S.R.L.",
+      "brand": "EVOLUTION",
+      "cif": "36034853",
+      "owner": "peviitor-scrapers",
+      "repo": "evolution-gaming-ro-python-scraper",
+      "local_dir": "evolution-gaming-ro-python-scraper",
+      "language": "py",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Lives under the peviitor-scrapers org and, like e-infra-sa-python-scraper, was derived before its GitHub org transfer -- every internal link (README badges, docs/index.html, docs/company.json + scraper/config/company.json scraperFile, ai/*.md, CONTRIBUTING.md, and a hardcoded assertion in tests/consistency/test_readme.py) still pointed at the stale ale23yfm owner, 404'ing every button on the live page. Fixed to peviitor-scrapers everywhere (90/90 tests pass). docs/index.html re-themed to the dark fleet UI (was still on the original warm/cream theme) and the dark test-results hub generator (navbar with direct Unit/Integration/E2E links + suite-path-to-GitHub-source links) added to automation-testing.yml, matching the current template. Scrapes the EVOLUTION WordPress JSON careers API (careers.evolution.com), not a generic HTML board -- scraper/index.py's parsing logic was left as-is."
     }
   ]
 }
