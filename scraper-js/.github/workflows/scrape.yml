@@ -173,11 +173,17 @@ jobs:
         run: |
           mkdir -p docs/test-results
           COMPANY_NAME=$(jq -r '.company' scraper/config/company.json 2>/dev/null || echo "Scraper")
-          NAVBAR='<div style="font-family:'"'"'JetBrains Mono'"'"',monospace;background:#131317;border-bottom:2px solid #e0122a;color:#9a9fac;padding:.6rem 1.1rem;font-size:.75rem;letter-spacing:.04em"><a href="../" style="color:#e0122a;text-decoration:none;font-weight:700">&larr; DASHBOARD</a> &nbsp;/&nbsp; <a href="./" style="color:#9a9fac;text-decoration:none">TEST RESULTS</a></div>'
+          NAV_ITEMS=""
+          add_nav() { [ -f "docs/test-results/$1.html" ] && NAV_ITEMS="${NAV_ITEMS}<a href=\"$1.html\" style=\"color:#9a9fac;text-decoration:none;margin-left:1rem\">$2</a>"; }
+          add_nav pre-scrape-unit "Unit"
+          add_nav pre-scrape-integration "Integration"
+          add_nav post-scrape "E2E"
+          add_nav post-scrape-consistency "Consistency"
+          NAVBAR="<div data-pv-navbar style=\"font-family:'JetBrains Mono',monospace;background:#131317;border-bottom:2px solid #e0122a;color:#9a9fac;padding:.6rem 1.1rem;font-size:.75rem;letter-spacing:.04em\"><a href=\"../\" style=\"color:#e0122a;text-decoration:none;font-weight:700\">&larr; DASHBOARD</a>${NAV_ITEMS}</div>"
           for f in docs/test-results/*.html; do
             [ -f "$f" ] || continue
             case "$f" in */index.html) continue;; esac
-            grep -q "TEST RESULTS</a></div>" "$f" 2>/dev/null && continue
+            grep -q "data-pv-navbar" "$f" 2>/dev/null && continue
             sed -i "s|<body>|<body>${NAVBAR}|" "$f" || true
           done
           {
