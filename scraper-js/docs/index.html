@@ -1,256 +1,187 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="pageTitle">Locuri de muncă — peviitor.ro</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: linear-gradient(135deg, #fdf6f0 0%, #f5e6d3 50%, #f0dcc8 100%);
-      color: #2d2a24;
-      min-height: 100vh;
-      line-height: 1.6;
-    }
-    .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="pageTitle">Locuri de muncă — peviitor.ro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#eceef1; --ink-dim:#9a9fac; --ink-faint:#5c616e;
+  --bg:#0a0a0d; --surface:#131317; --surface2:#1a1a20; --border:#2a2a32;
+  --red:#e0122a; --red-dim:#8c0c1c; --red-glow:rgba(224,18,42,.35);
+  --good:#2fd66a; --warn:#f0a30a;
+  --radius:3px;
+  --font-head:'Oswald',sans-serif; --font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{
+  font-family:var(--font-mono);
+  background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, transparent 1px, transparent 3px),
+    radial-gradient(900px 500px at 8% -10%, rgba(224,18,42,.10) 0%, transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  line-height:1.6;
+  font-size:.92rem;
+}
+a{color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:1.75rem 1.25rem 4rem}
 
-    header {
-      text-align: center;
-      padding: 1.5rem 0 2rem;
-      position: relative;
-    }
-    .logo-link {
-      display: inline-block;
-      line-height: 0;
-    }
-    .logo-img {
-      height: 32px;
-      width: auto;
-      transition: opacity 0.2s;
-    }
-    .logo-img:hover { opacity: 0.8; }
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #c44536;
-      letter-spacing: -0.02em;
-      margin: 0.5rem 0 0.25rem;
-    }
-    header p {
-      color: #7d6b5a;
-      font-size: 0.9rem;
-    }
-    header .scraper-tag {
-      display: inline-block;
-      margin-top: 0.5rem;
-      padding: 0.3rem 0.85rem;
-      background: #e8d5c4;
-      border-radius: 8px;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.8rem;
-      color: #5a4a3a;
-    }
+/* ---------- top bar ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--border)}
+.brand{display:flex;align-items:center;gap:.65rem;text-decoration:none}
+.brand img{height:24px;width:auto;filter:grayscale(1) brightness(1.6)}
+.brand span{font-family:var(--font-head);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim)}
+.lang-toggle{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2px}
+.lang-toggle button{border:none;background:transparent;padding:.4rem .85rem;border-radius:1px;font-family:var(--font-mono);font-size:.72rem;font-weight:700;letter-spacing:.05em;color:var(--ink-faint);cursor:pointer;transition:.15s}
+.lang-toggle button.active{background:var(--red);color:#fff}
 
-    .lang-toggle {
-      position: absolute;
-      top: 0;
-      right: 0;
-      display: inline-flex;
-      background: #e8d5c4;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .lang-toggle button {
-      border: none;
-      background: transparent;
-      padding: 0.35rem 0.75rem;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #7d6b5a;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .lang-toggle button.active {
-      background: #c44536;
-      color: #fff;
-    }
-    .lang-toggle button:not(.active):hover { color: #5a4a3a; }
+/* ---------- hero ---------- */
+.hero{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:4px solid var(--red);
+  border-radius:var(--radius);
+  padding:2.25rem 2rem;
+  color:var(--ink);
+  position:relative;
+  overflow:hidden;
+  margin-bottom:1.1rem;
+  clip-path:polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 22px);
+}
+.hero::before{
+  content:"";position:absolute;top:0;right:0;width:220px;height:220px;
+  background:radial-gradient(circle, var(--red-glow) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:.45rem;
+  font-family:var(--font-mono);font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--red);
+  border:1px solid var(--red-dim);
+  padding:.28rem .65rem;margin-bottom:1rem;
+}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good)}
+.hero h1{font-family:var(--font-head);font-size:2.1rem;font-weight:700;letter-spacing:.01em;text-transform:uppercase;margin-bottom:.5rem;line-height:1.05}
+.hero p{opacity:.7;font-size:.85rem;max-width:34rem;font-family:var(--font-mono)}
+.hero-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.hero-badges img{height:20px;filter:grayscale(1) contrast(1.3) brightness(.95);opacity:.85}
+.hero-badges a:hover img{opacity:1}
 
-    .card {
-      background: #fffcf9;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(90, 60, 40, 0.10);
-      overflow: hidden;
-      margin-bottom: 1.25rem;
-    }
-    .card-header {
-      padding: 1.1rem 1.5rem;
-      border-bottom: 1px solid #f0e4d8;
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #5a4a3a;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .card-body { padding: 1.5rem; }
+/* ---------- KPI row ---------- */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:1.1rem}
+.kpi{
+  background:var(--surface);
+  padding:1.3rem 1.25rem;
+}
+.kpi-label{font-family:var(--font-mono);font-size:.68rem;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem}
+.kpi-value{font-family:var(--font-head);font-size:2rem;font-weight:700;letter-spacing:0;color:var(--ink)}
+.kpi.accent .kpi-value{color:var(--red)}
+.kpi.good .kpi-value{color:var(--good)}
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-    }
-    .stat {
-      background: linear-gradient(135deg, #f0faf3, #e8f5ec);
-      border-radius: 12px;
-      padding: 1.25rem 1rem;
-      text-align: center;
-    }
-    .stat-value {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #2e7d32;
-      line-height: 1.2;
-    }
-    .stat-label {
-      font-size: 0.78rem;
-      color: #558b5a;
-      font-weight: 500;
-      margin-top: 0.2rem;
-    }
-    .stat-time {
-      background: linear-gradient(135deg, #fef8f0, #fdf0e0);
-    }
-    .stat-time .stat-value { color: #c44536; font-size: 1.1rem; }
-    .stat-time .stat-label { color: #a07050; }
+/* ---------- section card ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.1rem;overflow:hidden}
+.card-head{padding:1.05rem 1.35rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--surface2)}
+.card-head h2{font-family:var(--font-head);font-size:.95rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.card-head p{font-size:.74rem;color:var(--ink-faint);margin-top:.2rem;font-family:var(--font-mono)}
+.card-body{padding:1.35rem}
 
-    .features-list {
-      list-style: none;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
-    .features-list li {
-      padding: 0.4rem 0.85rem;
-      background: #f5ede6;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      color: #5a4a3a;
-    }
-    .features-list li::before {
-      content: "\2713";
-      color: #2e7d32;
-      margin-right: 0.4rem;
-      font-weight: 700;
-    }
+/* ---------- action grid ---------- */
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--border)}
+.action{
+  display:flex;flex-direction:column;gap:.5rem;
+  background:var(--surface);
+  padding:1.1rem 1.1rem;text-decoration:none;color:var(--ink);
+  transition:.15s ease;border-top:2px solid transparent;
+}
+.action:hover{border-top-color:var(--red);background:var(--surface2)}
+.action .icon{width:34px;height:34px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:var(--red)}
+.action.run .icon{color:var(--good);border-color:var(--good)}
+.action .a-title{font-family:var(--font-head);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.03em}
+.action .a-sub{font-size:.72rem;color:var(--ink-faint)}
 
-    .company-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 0.6rem;
-    }
-    .company-item {
-      background: #f5ede6;
-      padding: 0.55rem 0.85rem;
-      border-radius: 8px;
-      font-size: 0.82rem;
-    }
-    .company-item strong {
-      color: #c44536;
-    }
-    .company-item a {
-      color: #c44536;
-      text-decoration: none;
-    }
-    .company-item a:hover { text-decoration: underline; }
+/* ---------- test suite grid ---------- */
+.tests-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--border)}
+.test-card{
+  display:flex;align-items:flex-start;gap:.75rem;
+  background:var(--surface);
+  padding:1rem 1.1rem;text-decoration:none;color:var(--ink);
+  transition:.15s ease;border-top:2px solid transparent;
+}
+.test-card:hover{border-top-color:var(--red);background:var(--surface2)}
+.test-card .t-icon{width:30px;height:30px;flex:none;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.95rem;color:var(--red)}
+.test-card .t-title{font-family:var(--font-head);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em;margin-bottom:.15rem}
+.test-card .t-sub{font-size:.72rem;color:var(--ink-faint);line-height:1.4}
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #c44536;
-      color: #fff;
-      border: none;
-      padding: 0.8rem 1.6rem;
-      border-radius: 10px;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .btn:hover {
-      background: #a83828;
-      transform: translateY(-1px);
-    }
-    .btn-wrapper { text-align: center; margin: 1rem 0; }
+/* ---------- company grid ---------- */
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border)}
+.company-item{background:var(--surface);padding:.65rem .9rem;font-size:.78rem}
+.company-item strong{color:var(--red);display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;font-weight:700}
+.company-item a{color:var(--ink-dim);text-decoration:none;word-break:break-all}
+.company-item a:hover{color:var(--red)}
 
-    .job-item {
-      padding: 1rem 0;
-      border-bottom: 1px solid #f0e4d8;
-    }
-    .job-item:last-child { border-bottom: none; }
-    .job-item a {
-      color: #c44536;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9rem;
-    }
-    .job-item a:hover { text-decoration: underline; }
-    .job-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 0.3rem;
-      font-size: 0.78rem;
-      color: #7d6b5a;
-    }
-    .job-meta span { display: inline-flex; align-items: center; gap: 0.2rem; }
+/* ---------- jobs list ---------- */
+.job-item{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--border)}
+.job-item:last-child{border-bottom:none}
+.job-item .j-num{color:var(--red);font-size:.72rem;font-weight:700;min-width:1.6rem;font-family:var(--font-mono)}
+.job-item a.j-title{color:var(--ink);text-decoration:none;font-weight:500;font-size:.86rem}
+.job-item a.j-title:hover{color:var(--red)}
+.job-meta{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:.3rem;font-size:.7rem;color:var(--ink-faint)}
+.job-meta span{display:inline-flex;align-items:center;gap:.25rem}
+.job-row{display:flex;gap:.6rem;flex:1}
 
-    .empty-state {
-      text-align: center;
-      padding: 2rem 0;
-      color: #9a8a7a;
-      font-size: 0.9rem;
-    }
+.empty-state{text-align:center;padding:2rem 0;color:var(--ink-faint);font-size:.82rem}
 
-    footer {
-      text-align: center;
-      padding: 2rem 0;
-      color: #9a8a7a;
-      font-size: 0.8rem;
-    }
-    footer a { color: #c44536; text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+/* ---------- signature / seal ---------- */
+.signature{
+  display:flex;align-items:center;justify-content:center;gap:.85rem;
+  margin:2.25rem 0 1.5rem;padding:1.1rem 0;
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.signature .seal{
+  width:34px;height:34px;border:2px solid var(--red);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-weight:700;font-size:.75rem;color:var(--red);
+  flex:none;
+}
+.signature .sig-text{font-family:var(--font-head);text-transform:uppercase;letter-spacing:.18em;font-size:.7rem;color:var(--ink-faint)}
+.signature .sig-text b{color:var(--ink-dim);letter-spacing:.1em}
 
-    @media (max-width: 600px) {
-      .lang-toggle { position: static; margin-bottom: 0.75rem; }
-      header { display: flex; flex-direction: column; align-items: center; }
-      .stats { grid-template-columns: 1fr; }
-      .company-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+footer{text-align:center;padding:0 0 0;color:var(--ink-faint);font-size:.72rem;font-family:var(--font-mono)}
+footer a{color:var(--ink-dim);text-decoration:none;font-weight:600}
+footer a:hover{color:var(--red)}
+
+@media (max-width:640px){
+  .topbar{flex-direction:column;align-items:flex-start;gap:.75rem}
+  .kpis{grid-template-columns:1fr}
+  .hero{padding:1.85rem 1.3rem}
+  .hero h1{font-size:1.55rem}
+}
+</style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
-  <header>
+  <div class="topbar">
+    <a class="brand" href="https://peviitor.ro" target="_blank">
+      <img src="https://peviitor.ro/assets/logo-DV2JQkir.svg" alt="peviitor">
+      <span>peviitor.ro // scraper</span>
+    </a>
     <div class="lang-toggle">
       <button onclick="setLang('en')" id="lang-en">EN</button>
       <button onclick="setLang('ro')" id="lang-ro" class="active">RO</button>
     </div>
-    <a href="https://peviitor.ro" target="_blank" class="logo-link">
-      <img src="https://peviitor.ro/assets/logo-DV2JQkir.svg" alt="peviitor" class="logo-img">
-    </a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow"><span class="dot"></span> <span data-i18n="tag">Scraper activ</span></div>
     <h1 data-i18n="pageTitle">Locuri de muncă</h1>
     <p data-i18n="subtitle">Scraper automat pentru locurile de muncă {{COMPANY_NAME}}</p>
-
-    <div style="margin: 15px 0; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
+    <div class="hero-badges">
       <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml" target="_blank">
         <img src="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml/badge.svg" alt="Scraper Status">
       </a>
@@ -258,85 +189,170 @@
         <img src="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/tests.yml/badge.svg" alt="Tests Status">
       </a>
       <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/blob/main/CHANGELOG.md" target="_blank">
-        <img src="https://img.shields.io/github/package-json/v/{{GITHUB_OWNER}}/{{GITHUB_REPO}}?label=version&color=blue" alt="Version">
+        <img src="https://img.shields.io/github/package-json/v/{{GITHUB_OWNER}}/{{GITHUB_REPO}}?label=version&color=e0122a" alt="Version">
       </a>
       <a href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/blob/main/LICENSE" target="_blank">
-        <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License">
-      </a>
-      <a href="https://ecma-international.org/" target="_blank">
-        <img src="https://img.shields.io/badge/javascript-ESM-F7DF1E?logo=javascript&logoColor=black" alt="JavaScript ESM">
-      </a>
-      <a href="https://nodejs.org/" target="_blank">
-        <img src="https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white" alt="Node.js 24">
-      </a>
-      <a href="test-results/" target="_blank">
-        <img src="https://img.shields.io/badge/test--results-HTML-9b59b6" alt="Test Results">
+        <img src="https://img.shields.io/badge/License-MIT-e0122a.svg" alt="MIT License">
       </a>
     </div>
+  </div>
 
-    <div class="scraper-tag">job_seeker_ro_spider</div>
-  </header>
+  <div class="kpis">
+    <div class="kpi accent">
+      <div class="kpi-label" data-i18n="jobsLabel">Locuri de muncă</div>
+      <div class="kpi-value" id="jobsCount">—</div>
+    </div>
+    <div class="kpi good">
+      <div class="kpi-label" data-i18n="verifiedLabel">Verificate</div>
+      <div class="kpi-value" id="verifiedCount">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label" id="lastRunDate" data-i18n="lastCheck">Ultima verificare</div>
+      <div class="kpi-value" id="lastRunTime" style="font-size:1.3rem">—</div>
+    </div>
+  </div>
 
   <div class="card">
-    <div class="card-body">
-      <div class="stats" id="statsContainer">
-        <div class="stat">
-          <div class="stat-value" id="jobsCount">—</div>
-          <div class="stat-label" data-i18n="jobsLabel">Job-uri</div>
+    <div class="card-head">
+      <div>
+        <h2 data-i18n="actionsTitle">Acțiuni rapide</h2>
+        <p data-i18n="actionsSub">Rulează scraper-ul sau vezi rezultatele lui</p>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="actions">
+        <a class="action run" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml" target="_blank">
+          <div class="icon">&#9654;</div>
+          <div class="a-title" data-i18n="runBtn">Rulează Scraper</div>
+          <div class="a-sub" data-i18n="runSub">Pornește manual din GitHub Actions</div>
+        </a>
+        <a class="action" href="jobs.md" target="_blank">
+          <div class="icon">&#128196;</div>
+          <div class="a-title" data-i18n="jobsMd">Jobs.md</div>
+          <div class="a-sub" data-i18n="jobsMdSub">Lista brută în Markdown</div>
+        </a>
+        <a class="action" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}" target="_blank">
+          <div class="icon">&#128218;</div>
+          <div class="a-title" data-i18n="sourceBtn">Cod sursă</div>
+          <div class="a-sub" data-i18n="sourceSub">Repo-ul acestui scraper pe GitHub</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 data-i18n="testsTitle">Rezultate teste</h2>
+        <p data-i18n="testsSub">Rapoartele generate la fiecare rulare</p>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="tests-grid">
+        <a class="test-card" href="test-results/pre-scrape-unit.html" target="_blank">
+          <div class="t-icon">&#129513;</div>
+          <div>
+            <div class="t-title" data-i18n="testUnit">Unit Tests</div>
+            <div class="t-sub" data-i18n="testUnitSub">Funcții izolate, fără rețea</div>
+          </div>
+        </a>
+        <a class="test-card" href="test-results/pre-scrape-integration.html" target="_blank">
+          <div class="t-icon">&#128279;</div>
+          <div>
+            <div class="t-title" data-i18n="testIntegration">Integration Tests</div>
+            <div class="t-sub" data-i18n="testIntegrationSub">ANAF + API Peviitor, înainte de scrape</div>
+          </div>
+        </a>
+        <a class="test-card" href="test-results/post-scrape.html" target="_blank">
+          <div class="t-icon">&#127919;</div>
+          <div>
+            <div class="t-title" data-i18n="testE2E">E2E Tests</div>
+            <div class="t-sub" data-i18n="testE2ESub">Pipeline complet, după scrape</div>
+          </div>
+        </a>
+        <a class="test-card" href="test-results/post-scrape-consistency.html" target="_blank">
+          <div class="t-icon">&#9989;</div>
+          <div>
+            <div class="t-title" data-i18n="testConsistency">Consistency Tests</div>
+            <div class="t-sub" data-i18n="testConsistencySub">Structura repo-ului respectă template-ul</div>
+          </div>
+        </a>
+        <a class="test-card" href="test-results/" target="_blank">
+          <div class="t-icon">&#128203;</div>
+          <div>
+            <div class="t-title" data-i18n="testAll">Toate rapoartele</div>
+            <div class="t-sub" data-i18n="testAllSub">Pagina centrală cu toate rezultatele</div>
+          </div>
+        </a>
+        <a class="test-card" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/tests.yml" target="_blank">
+          <div class="t-icon">&#9881;</div>
+          <div>
+            <div class="t-title" data-i18n="testsWorkflow">Workflow Teste</div>
+            <div class="t-sub" data-i18n="testsWorkflowSub">Log-urile live din GitHub Actions</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="companyCard">
+    <div class="card-head">
+      <div>
+        <h2 data-i18n="companyTitle">Despre companie</h2>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="company-grid" id="companyDetails"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2 data-i18n="aboutTitle">Despre acest scraper</h2>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="tests-grid" style="grid-template-columns:1fr">
+        <div class="test-card" style="cursor:default">
+          <div class="t-icon">&#127760;</div>
+          <div><div class="t-title" data-i18n="f1">Extrage locuri de muncă de pe site-ul de carieră al companiei + ANOFM</div></div>
         </div>
-        <div class="stat">
-          <div class="stat-value" id="verifiedCount">—</div>
-          <div class="stat-label" data-i18n="verifiedLabel">Verificate</div>
+        <div class="test-card" style="cursor:default">
+          <div class="t-icon">&#9889;</div>
+          <div><div class="t-title" data-i18n="f2">Parsează HTML server-rendered cu Cheerio (fără browser)</div></div>
         </div>
-        <div class="stat stat-time">
-          <div class="stat-value" id="lastRunTime">—</div>
-          <div class="stat-label" id="lastRunDate">—</div>
+        <div class="test-card" style="cursor:default">
+          <div class="t-icon">&#127974;</div>
+          <div><div class="t-title" data-i18n="f3">Validează compania via ANAF</div></div>
+        </div>
+        <div class="test-card" style="cursor:default">
+          <div class="t-icon">&#128260;</div>
+          <div><div class="t-title" data-i18n="f4">Verifică și elimină locuri de muncă expirate</div></div>
+        </div>
+        <div class="test-card" style="cursor:default">
+          <div class="t-icon">&#128190;</div>
+          <div><div class="t-title" data-i18n="f5">Salvează în API-ul Peviitor</div></div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-header" data-i18n="aboutTitle">Despre acest scraper</div>
-    <div class="card-body">
-      <ul class="features-list" data-i18n="featuresList">
-        <li data-i18n="f1">Extrage job-uri de pe site-ul de carieră al companiei + ANOFM</li>
-        <li data-i18n="f2">Parsează HTML server-rendered cu Cheerio (fără browser)</li>
-        <li data-i18n="f3">Validează compania via ANAF</li>
-        <li data-i18n="f4">Verifică și elimină job-uri expirate</li>
-        <li data-i18n="f5">Salvează în API-ul Peviitor</li>
-      </ul>
+    <div class="card-head">
+      <div>
+        <h2 data-i18n="jobsTitle">Locuri de muncă disponibile</h2>
+      </div>
     </div>
-  </div>
-
-  <div class="card" id="companyCard">
-    <div class="card-header" data-i18n="companyTitle">Despre companie</div>
-    <div class="card-body">
-      <div class="company-grid" id="companyDetails"></div>
-    </div>
-  </div>
-
-  <div class="btn-wrapper" style="display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap;">
-    <a class="btn" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/scrape.yml" target="_blank">
-      <span>&#9654;</span> <span data-i18n="runBtn">Rulează Scraper</span>
-    </a>
-    <a class="btn" href="test-results/" style="background:#7d6b5a;">
-      <span>&#128203;</span> <span data-i18n="testResults">Rezultate Teste</span>
-    </a>
-    <a class="btn" href="jobs.md" target="_blank" style="background:#4a7c59;">
-      <span>&#128196;</span> <span data-i18n="jobsMd">Jobs MD</span>
-    </a>
-    <a class="btn" href="https://github.com/{{GITHUB_OWNER}}/{{GITHUB_REPO}}/actions/workflows/tests.yml" target="_blank" style="background:#2e7d32;">
-      <span>&#9881;</span> <span data-i18n="testsWorkflow">Workflow Teste</span>
-    </a>
-  </div>
-
-  <div class="card">
-    <div class="card-header" data-i18n="jobsTitle">Locuri de muncă disponibile</div>
     <div class="card-body" id="jobsContainer">
       <div id="jobsList"></div>
       <div class="empty-state" id="jobsEmpty" data-i18n="jobsEmpty">Se încarcă...</div>
     </div>
+  </div>
+
+  <div class="signature">
+    <div class="seal">pV</div>
+    <div class="sig-text">Built &amp; hardened by <b>TheTatu13 // peViitor Systems</b></div>
   </div>
 
   <footer>
@@ -348,17 +364,10 @@
 </div>
 
 <script>
-// Loaded from docs/company.json (regenerated on every scrape)
 let COMPANY = "{{COMPANY_NAME}}";
 let COMPANY_CIF = "{{CIF}}";
-// The peviitor API keys jobs by CIF, and the same CIF also carries jobs
-// published by other scrapers (eJobs / BestJobs imports). This page shows only
-// the jobs THIS scraper manages — the ones on the company's own careers site —
-// so the count matches the company site exactly.
 let OWN_PREFIX = "{{JOB_URL_PREFIX}}";
 
-// Jobs are stored with a zero-padded 8-digit CIF (Peviitor API requirement),
-// while company.json keeps the real CIF. Compare with leading zeros stripped.
 const normalizeCif = (v) => String(v ?? "").replace(/^0+/, "");
 
 async function loadCompanyConfig() {
@@ -378,28 +387,52 @@ const i18n = {
   en: {
     pageTitle: "{{COMPANY_NAME}} Jobs — peviitor.ro",
     subtitle: "Automated scraper for {{COMPANY_NAME}} jobs",
+    tag: "Active scraper",
     jobsLabel: "Jobs",
     verifiedLabel: "Verified",
+    lastCheck: "Last check",
+    actionsTitle: "Quick actions",
+    actionsSub: "Run the scraper or check its results",
+    runBtn: "Run Scraper", runSub: "Trigger manually from GitHub Actions",
+    jobsMd: "Jobs.md", jobsMdSub: "Raw list in Markdown",
+    sourceBtn: "Source code", sourceSub: "This scraper's repo on GitHub",
+    testsTitle: "Test results", testsSub: "Reports generated on every run",
+    testUnit: "Unit Tests", testUnitSub: "Isolated functions, no network",
+    testIntegration: "Integration Tests", testIntegrationSub: "ANAF + Peviitor API, before scraping",
+    testE2E: "E2E Tests", testE2ESub: "Full pipeline, after scraping",
+    testConsistency: "Consistency Tests", testConsistencySub: "Repo structure matches the template",
+    testAll: "All reports", testAllSub: "Central page with every result",
+    testsWorkflow: "Test Workflow", testsWorkflowSub: "Live logs on GitHub Actions",
     aboutTitle: "About this scraper",
     f1: "Extracts jobs from the company careers site + ANOFM",
     f2: "Parses server-rendered HTML with Cheerio (no browser)",
-    f3: "Validates company via ANAF",
+    f3: "Validates the company via ANAF",
     f4: "Checks and removes expired jobs",
-    f5: "Saves to Peviitor API",
+    f5: "Saves to the Peviitor API",
     companyTitle: "About the company",
-    runBtn: "Run Scraper",
     jobsTitle: "Available jobs",
     jobsEmpty: "Loading...",
     docs: "Documentation",
-    companyLoading: "Loading...",
-    testResults: "Test Results",
-    testsWorkflow: "Test Workflow",
   },
   ro: {
     pageTitle: "Locuri de muncă — peviitor.ro",
     subtitle: "Scraper automat pentru locurile de muncă {{COMPANY_NAME}}",
+    tag: "Scraper activ",
     jobsLabel: "Locuri de muncă",
     verifiedLabel: "Verificate",
+    lastCheck: "Ultima verificare",
+    actionsTitle: "Acțiuni rapide",
+    actionsSub: "Rulează scraper-ul sau vezi rezultatele lui",
+    runBtn: "Rulează Scraper", runSub: "Pornește manual din GitHub Actions",
+    jobsMd: "Jobs.md", jobsMdSub: "Lista brută în Markdown",
+    sourceBtn: "Cod sursă", sourceSub: "Repo-ul acestui scraper pe GitHub",
+    testsTitle: "Rezultate teste", testsSub: "Rapoartele generate la fiecare rulare",
+    testUnit: "Unit Tests", testUnitSub: "Funcții izolate, fără rețea",
+    testIntegration: "Integration Tests", testIntegrationSub: "ANAF + API Peviitor, înainte de scrape",
+    testE2E: "E2E Tests", testE2ESub: "Pipeline complet, după scrape",
+    testConsistency: "Consistency Tests", testConsistencySub: "Structura repo-ului respectă template-ul",
+    testAll: "Toate rapoartele", testAllSub: "Pagina centrală cu toate rezultatele",
+    testsWorkflow: "Workflow Teste", testsWorkflowSub: "Log-urile live din GitHub Actions",
     aboutTitle: "Despre acest scraper",
     f1: "Extrage locuri de muncă de pe site-ul de carieră al companiei + ANOFM",
     f2: "Parsează HTML server-rendered cu Cheerio (fără browser)",
@@ -407,13 +440,9 @@ const i18n = {
     f4: "Verifică și elimină locuri de muncă expirate",
     f5: "Salvează în API-ul Peviitor",
     companyTitle: "Despre companie",
-    runBtn: "Rulează Scraper",
     jobsTitle: "Locuri de muncă disponibile",
     jobsEmpty: "Se încarcă...",
     docs: "Documentație",
-    companyLoading: "Se încarcă...",
-    testResults: "Rezultate Teste",
-    testsWorkflow: "Workflow Teste",
   }
 };
 
@@ -459,15 +488,14 @@ async function loadStats() {
     if (comp) {
       const grid = document.getElementById("companyDetails");
       grid.innerHTML = `
-        <div class="company-item"><strong>CIF:</strong> ${comp.id}</div>
-        <div class="company-item"><strong>Brand:</strong> ${comp.brand}</div>
-        <div class="company-item"><strong>Status:</strong> ${comp.status}</div>
-        <div class="company-item"><strong>Orașe:</strong> ${(comp.location || []).join(", ") || "—"}</div>
-        <div class="company-item"><strong>Website:</strong> <a href="${(comp.website || [])[0] || "#"}" target="_blank">${(comp.website || [])[0] || "—"}</a></div>
-        <div class="company-item"><strong>Career:</strong> <a href="${(comp.career || [])[0] || "#"}" target="_blank">${(comp.career || [])[0] || "—"}</a></div>
-        <div class="company-item"><strong>Ultimul scrape:</strong> ${comp.lastScraped || "—"}</div>
+        <div class="company-item"><strong>CIF</strong>${comp.id}</div>
+        <div class="company-item"><strong>Brand</strong>${comp.brand}</div>
+        <div class="company-item"><strong>Status</strong>${comp.status}</div>
+        <div class="company-item"><strong>Orașe</strong>${(comp.location || []).join(", ") || "—"}</div>
+        <div class="company-item"><strong>Website</strong><a href="${(comp.website || [])[0] || "#"}" target="_blank">${(comp.website || [])[0] || "—"}</a></div>
+        <div class="company-item"><strong>Career</strong><a href="${(comp.career || [])[0] || "#"}" target="_blank">${(comp.career || [])[0] || "—"}</a></div>
+        <div class="company-item"><strong>Ultimul scrape</strong>${comp.lastScraped || "—"}</div>
       `;
-
       window.__companyName = comp.company || COMPANY;
       applyDynamicTitle();
     }
@@ -485,7 +513,6 @@ async function loadStats() {
 
   const now = new Date();
   document.getElementById("lastRunTime").textContent = now.toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
-  document.getElementById("lastRunDate").textContent = now.toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   try {
     const list = document.getElementById("jobsList");
@@ -503,9 +530,8 @@ async function loadStats() {
       const docs = data.response?.docs || [];
       if (docs.length === 0) { hasMore = false; break; }
 
-      docs.forEach((job, idx) => {
+      docs.forEach((job) => {
         if (normalizeCif(job.cif) !== normalizeCif(COMPANY_CIF)) return;
-        // only jobs from the company's own careers site (this scraper's scope)
         if (OWN_PREFIX && !String(job.url || "").startsWith(OWN_PREFIX)) return;
         ourCount++;
         const div = document.createElement("div");
@@ -513,11 +539,15 @@ async function loadStats() {
         const loc = Array.isArray(job.location) ? job.location.join(", ") : "";
         const wm = job.workmode || "";
         div.innerHTML = `
-          <span style="color:#9a8a7a; font-size:0.8rem; font-weight:600; margin-right:0.5rem;">${ourCount}.</span>
-          <a href="${job.url}" target="_blank">${job.title}</a>
-          <div class="job-meta">
-            ${loc ? `<span>&#128205; ${loc}</span>` : ""}
-            ${wm ? `<span>&#128188; ${wm}</span>` : ""}
+          <div class="job-row">
+            <span class="j-num">${ourCount}.</span>
+            <div>
+              <a class="j-title" href="${job.url}" target="_blank">${job.title}</a>
+              <div class="job-meta">
+                ${loc ? `<span>&#128205; ${loc}</span>` : ""}
+                ${wm ? `<span>&#128188; ${wm}</span>` : ""}
+              </div>
+            </div>
           </div>
         `;
         list.appendChild(div);

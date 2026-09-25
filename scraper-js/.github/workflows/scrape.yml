@@ -173,10 +173,33 @@ jobs:
         run: |
           mkdir -p docs/test-results
           COMPANY_NAME=$(jq -r '.company' scraper/config/company.json 2>/dev/null || echo "Scraper")
+          NAVBAR='<div style="font-family:'"'"'JetBrains Mono'"'"',monospace;background:#131317;border-bottom:2px solid #e0122a;color:#9a9fac;padding:.6rem 1.1rem;font-size:.75rem;letter-spacing:.04em"><a href="../" style="color:#e0122a;text-decoration:none;font-weight:700">&larr; DASHBOARD</a> &nbsp;/&nbsp; <a href="./" style="color:#9a9fac;text-decoration:none">TEST RESULTS</a></div>'
+          for f in docs/test-results/*.html; do
+            [ -f "$f" ] || continue
+            case "$f" in */index.html) continue;; esac
+            grep -q "TEST RESULTS</a></div>" "$f" 2>/dev/null && continue
+            sed -i "s|<body>|<body>${NAVBAR}|" "$f" || true
+          done
           {
             echo "<!DOCTYPE html><html lang=\"ro\"><head><meta charset=\"UTF-8\">"
+            echo "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
             echo "<title>Rezultate teste — ${COMPANY_NAME}</title>"
-            echo "<style>body{font-family:'Inter',-apple-system,sans-serif;background:#fdf6f0;color:#2d2a24;max-width:640px;margin:2rem auto;padding:0 1.5rem;}h1{color:#c44536;font-size:1.3rem;}ul{list-style:none;padding:0;}li{margin:0.6rem 0;}a{color:#c44536;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline}.missing{color:#9a8a7a}</style>"
+            echo "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">"
+            echo "<link href=\"https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap\" rel=\"stylesheet\">"
+            echo "<style>"
+            echo ":root{--ink:#eceef1;--ink-dim:#9a9fac;--ink-faint:#5c616e;--bg:#0a0a0d;--surface:#131317;--surface2:#1a1a20;--border:#2a2a32;--red:#e0122a;}"
+            echo "*{box-sizing:border-box;margin:0;padding:0}"
+            echo "body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--ink);max-width:760px;margin:0 auto;padding:2rem 1.25rem 3rem;line-height:1.6}"
+            echo "h1{font-family:'Oswald',sans-serif;color:var(--ink);text-transform:uppercase;letter-spacing:.03em;font-size:1.3rem;border-left:4px solid var(--red);padding-left:.7rem;margin-bottom:1.5rem}"
+            echo "ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}"
+            echo "li{background:var(--surface);padding:1rem 1.1rem;border-top:2px solid transparent;transition:.15s}"
+            echo "li:hover{border-top-color:var(--red);background:var(--surface2)}"
+            echo "a{color:var(--ink);text-decoration:none;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.03em}"
+            echo "a:hover{color:var(--red)}"
+            echo ".missing{color:var(--ink-faint);font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.03em}"
+            echo ".back{display:inline-block;margin-top:1.75rem;color:var(--ink-faint);text-decoration:none;font-size:.78rem;letter-spacing:.04em}"
+            echo ".back:hover{color:var(--red)}"
+            echo "</style>"
             echo "</head><body><h1>Rezultate teste — ${COMPANY_NAME}</h1><ul>"
             add_entry() {
               if [ -f "docs/test-results/$1.html" ]; then
@@ -189,7 +212,7 @@ jobs:
             add_entry pre-scrape-integration "Pre-scrape — Integration Tests"
             add_entry post-scrape "Post-scrape — E2E Tests"
             add_entry post-scrape-consistency "Post-scrape — Consistency Tests"
-            echo "</ul><p><a href=\"../\">&larr; Înapoi</a></p></body></html>"
+            echo "</ul><a class=\"back\" href=\"../\">&larr; ÎNAPOI LA DASHBOARD</a></body></html>"
           } > docs/test-results/index.html
 
       - name: Upload test artifacts
