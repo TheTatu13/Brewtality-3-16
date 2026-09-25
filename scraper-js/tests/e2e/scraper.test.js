@@ -15,16 +15,11 @@ const TEST_BRAND = companyConfig.brand;
 const COMPANY_NAME = companyConfig.company;
 const OWN_PREFIX = scraperConfig.ownJobUrlPrefix;
 
-let HAS_API = false;
-let HAS_ANAF = false;
-
 function gate(cond) {
   return (name, fn, timeout) =>
     cond ? it(name, fn, timeout) : it.skip(`${name} (skipped)`, fn, timeout);
 }
 const itLive = gate(CONFIGURED);
-const itIfApi = (name, fn, t) => gate(CONFIGURED && HAS_API)(name, fn, t);
-const itIfAnaf = (name, fn, t) => gate(CONFIGURED && HAS_ANAF)(name, fn, t);
 
 // demoanaf.ro's free API tier was sunset 2026-08-21 (permanent HTTP 402 on
 // every /api/* call). anaf.js already falls back to cuiscan.ro/cuifirma.ro
@@ -39,14 +34,22 @@ async function checkAnafAvailability() {
          (cuifirma.status === 'fulfilled' && cuifirma.value.ok);
 }
 
-beforeAll(async () => {
-  if (!CONFIGURED) return;
+// NOTE: top-level await, resolved BEFORE the describe()/it() calls below are
+// registered. Jest builds its whole test tree synchronously on file load, so
+// a `beforeAll`-based check here would only ever be read by itIfApi/itIfAnaf
+// AFTER they already decided (at their default `false`) whether to skip —
+// permanently pending every gated test regardless of actual availability.
+let HAS_API = false;
+let HAS_ANAF = false;
+if (CONFIGURED) {
   [HAS_API, HAS_ANAF] = await Promise.all([
     fetch(`${API_BASE}/scraper/jobs/?cif=${TEST_CIF}&rows=1`, { signal: AbortSignal.timeout(5000) })
       .then(r => r.ok || r.status === 400).catch(() => false),
     checkAnafAvailability().catch(() => false),
   ]);
-});
+}
+const itIfApi = (name, fn, t) => gate(CONFIGURED && HAS_API)(name, fn, t);
+const itIfAnaf = (name, fn, t) => gate(CONFIGURED && HAS_ANAF)(name, fn, t);
 
 describe('E2E: Full Scraping Pipeline', () => {
 

@@ -3,10 +3,6 @@ import fetch from 'node-fetch';
 
 const API_BASE = 'https://api.peviitor.ro/v1';
 
-let HAS_API = false;
-
-let HAS_ANAF = false;
-
 // demoanaf.ro's free API tier was sunset 2026-08-21 (permanent HTTP 402 on
 // every /api/* call). anaf.js already falls back to cuiscan.ro/cuifirma.ro
 // when demoanaf.ro fails, so "is ANAF available" must reflect that fallback
@@ -30,16 +26,6 @@ import companyConfig from '../../scraper/config/company.js';
 // sense once a real company has been filled in.
 const CONFIGURED = !JSON.stringify(companyConfig).includes('{{');
 
-function itIfApi(name, fn, timeout) {
-  if (CONFIGURED && HAS_API) return it(name, fn, timeout);
-  return it.skip(`${name} (skipped: ${CONFIGURED ? 'API unavailable' : 'company not configured'})`, fn, timeout);
-}
-
-function itIfAnaf(name, fn, timeout) {
-  if (CONFIGURED && HAS_ANAF) return it(name, fn, timeout);
-  return it.skip(`${name} (skipped: ${CONFIGURED ? 'ANAF unavailable' : 'company not configured'})`, fn, timeout);
-}
-
 const COMPANY_CIF = companyConfig.id;
 const COMPANY_BRAND = companyConfig.brand;
 const COMPANY_NAME = companyConfig.company;
@@ -59,9 +45,26 @@ async function checkApiAvailability() {
   }
 }
 
-beforeAll(async () => {
+// NOTE: top-level await, resolved BEFORE the describe()/it() calls below are
+// registered. Jest builds its whole test tree synchronously on file load, so
+// a `beforeAll`-based check here would only ever be read by itIfApi/itIfAnaf
+// AFTER they already decided (at their default `false`) whether to skip —
+// permanently pending every gated test regardless of actual availability.
+let HAS_API = false;
+let HAS_ANAF = false;
+if (CONFIGURED) {
   [HAS_API, HAS_ANAF] = await Promise.all([checkApiAvailability(), checkAnafAvailability()]);
-});
+}
+
+function itIfApi(name, fn, timeout) {
+  if (CONFIGURED && HAS_API) return it(name, fn, timeout);
+  return it.skip(`${name} (skipped: ${CONFIGURED ? 'API unavailable' : 'company not configured'})`, fn, timeout);
+}
+
+function itIfAnaf(name, fn, timeout) {
+  if (CONFIGURED && HAS_ANAF) return it(name, fn, timeout);
+  return it.skip(`${name} (skipped: ${CONFIGURED ? 'ANAF unavailable' : 'company not configured'})`, fn, timeout);
+}
 
 describe('Integration: API Workflow', () => {
 
