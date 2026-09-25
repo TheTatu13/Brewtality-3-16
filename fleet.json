@@ -149,6 +149,18 @@
       "status": "active"
     },
     {
+      "company": "E-INFRA S.A.",
+      "brand": "E-INFRA",
+      "cif": "38647188",
+      "owner": "peviitor-scrapers",
+      "repo": "e-infra-sa-python-scraper",
+      "local_dir": "e-infra-sa-python-scraper",
+      "language": "py",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Lives under the peviitor-scrapers org (not TheTatu13) and predates the template -- it was the original reference repo the Python variant was derived FROM. All internal links (README badges, docs/index.html, scraperFile in company.json) pointed at a stale owner (ale23yfm) from before the org transfer, so every button on the live page 404'd; fixed to peviitor-scrapers, docs/index.html re-themed to the dark fleet UI, and the dark test-results hub generator added to automation-testing.yml. Scrapes a structured applytojob.com ATS board (not a generic career-page HTML scrape), so scraper/index.py's own parsing logic is intentionally NOT the generic self-healing-selector template -- that part was left as-is."
+    },
+    {
       "company": "MEJIX SRL",
       "brand": "MEJIX",
       "cif": "17372688",
