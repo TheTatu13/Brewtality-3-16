@@ -215,6 +215,12 @@ Repo-ul are `COMMIT_CHECKLIST.md` și `DEFINITION_OF_DONE.md` — citește-le
 - [`SCRAPERS.md`](SCRAPERS.md) — registrul tuturor scraperelor active din
   fleet, cu versiunea de template și eventuale note speciale per companie
 
+## 10. Când termini un scraper
+
+Când un scraper e gata (derivat, testat, verde, push-uit) — dai un mesaj pe
+serverul de Discord cu **"HellYeah"** 🍺, ca să știe toată echipa că mai avem
+unul funcțional în fleet.
+
 ---
 
 *Document scris pentru echipa peViitor.ro / Brewtality 3:16. Orice
