@@ -7,10 +7,10 @@
     "scrape": "node --no-deprecation scraper/index.js",
     "scrape:dry-run": "node --no-deprecation scraper/index.js --dry-run",
     "test": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:unit": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=unit",
-    "test:integration": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=integration",
-    "test:e2e": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=e2e",
-    "test:consistency": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=consistency"
+    "test:unit": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js unit",
+    "test:integration": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js integration",
+    "test:e2e": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js e2e",
+    "test:consistency": "node --no-deprecation --experimental-vm-modules node_modules/jest/bin/jest.js consistency"
   },
   "dependencies": {
     "cheerio": "^1.0.0",
