@@ -170,7 +170,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Was never registered here after the sebiboga transfer -- GitHub Pages wasn't even enabled (fixed 2026-09-25) and homepage URL still pointed at sebiboga.github.io (fixed). Uses the older flat scraper/ layout (no scraper/ subfolder) and the job-seeker-ro-spider.yml workflow name."
+      "notes": "Was never registered here after the sebiboga transfer -- GitHub Pages wasn't even enabled (fixed 2026-09-25) and homepage URL still pointed at sebiboga.github.io (fixed). Uses the older flat scraper/ layout (no scraper/ subfolder) and the job-seeker-ro-spider.yml workflow name. Branch protection added 2026-10-02; weekly health-summary NOT added because Issues are disabled on this repo (gh issue list fails) -- enable Issues in repo settings first."
     },
     {
       "company": "EVOLUTION PRODUCTS RO S.R.L.",
@@ -194,7 +194,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. Was failing 10/10 CI runs because src/anaf.js only used demoanaf.ro, which now answers 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). README/docs/index.html/scraperFile/CODEOWNERS still pointed at sebiboga -- repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). NOT yet covered by branch protection, weekly health-summary or template-sync-check (as of 2026-10-02)."
+      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. Was failing 10/10 CI runs because src/anaf.js only used demoanaf.ro, which now answers 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). README/docs/index.html/scraperFile/CODEOWNERS still pointed at sebiboga -- repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). Branch protection (no force-push/deletion) and weekly health-summary added 2026-10-02. template-sync-check intentionally NOT added: this flat EPAM-derived layout is not syncable from scraper-js and would open a permanent false 'template update available' issue."
     },
     {
       "company": "SOBIS AP S.R.L.",
@@ -206,7 +206,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. CI was green only because a cached company.json masked demoanaf.ro now answering 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). Stale sebiboga links in README/docs/CODEOWNERS repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). NOT yet covered by branch protection, weekly health-summary or template-sync-check (as of 2026-10-02)."
+      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. CI was green only because a cached company.json masked demoanaf.ro now answering 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). Stale sebiboga links in README/docs/CODEOWNERS repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). Branch protection (no force-push/deletion) and weekly health-summary added 2026-10-02. template-sync-check intentionally NOT added: this flat EPAM-derived layout is not syncable from scraper-js and would open a permanent false 'template update available' issue."
     }
   ]
 }
