@@ -23,3 +23,10 @@ Thumbs.db
 .idea/
 .vscode/
 .claude/worktrees/
+
+# scratch files
+*.ps1
+fail-log.txt
+*-out.txt
+*-out2.txt
+mejix-fail.txt
