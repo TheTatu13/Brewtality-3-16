@@ -316,15 +316,15 @@
       "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). NOT CONFIGURED: config/company.json still holds EPAM template data; scraper never adapted; also needs the SOLR_AUTH secret. Workflows re-enabled."
     },
     {
-      "company": "WIZZ AIR",
-      "brand": "Wizz Air", "cif": "",
+      "company": "WIZZ AIR MALTA LIMITED LUQA - SUCURSALA OTOPENI",
+      "brand": "Wizz Air", "cif": "46966293",
       "owner": "TheTatu13",
       "repo": "wizzair-nodejs-scraper",
       "local_dir": "wizzair-nodejs-scraper",
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). NOT CONFIGURED: config/company.json still holds EPAM template data, 0 jobs scraped; needs the SOLR_AUTH secret. Topics added."
+      "notes": "Built 2026-10-03 on the SAP SuccessFactors sitemap (careers.wizzair.com/sitemap.xml -> job pages, RO filter). Company: WIZZ AIR MALTA LIMITED LUQA - SUCURSALA OTOPENI (CIF 46966293). Premium layer (retry/backoff, canary, dry-run) + official ANAF fallback. OPEN: SOLR_AUTH secret must be set on the repo (integration/ensure steps return 401 without it)."
     }
   ]
 }
