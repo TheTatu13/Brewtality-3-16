@@ -207,6 +207,124 @@
       "template_version": "v1",
       "status": "active",
       "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. CI was green only because a cached company.json masked demoanaf.ro now answering 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). Stale sebiboga links in README/docs/CODEOWNERS repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). Branch protection (no force-push/deletion) and weekly health-summary added 2026-10-02. template-sync-check intentionally NOT added: this flat EPAM-derived layout is not syncable from scraper-js and would open a permanent false 'template update available' issue."
+    },
+    {
+      "company": "SMEDIX LLC ST. LOUIS SUCURSALA CLUJ NAPOCA",
+      "brand": "SMEDIX",
+      "cif": "36734466",
+      "owner": "TheTatu13",
+      "repo": "smedix-nodejs-scraper",
+      "local_dir": "smedix-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+    },
+    {
+      "company": "YARDI CALL CENTER SRL",
+      "brand": "YARDI",
+      "cif": "32509291",
+      "owner": "TheTatu13",
+      "repo": "yardi-call-center-srl-nodejs-scraper",
+      "local_dir": "yardi-call-center-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+    },
+    {
+      "company": "RAPEL SRL",
+      "brand": "RAPEL",
+      "cif": "5665609",
+      "owner": "TheTatu13",
+      "repo": "rapel-srl-nodejs-scraper",
+      "local_dir": "rapel-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+    },
+    {
+      "company": "GAMINVEST SRL",
+      "brand": "GAMINVEST",
+      "cif": "21913994",
+      "owner": "TheTatu13",
+      "repo": "gaminvest-srl-nodejs-scraper",
+      "local_dir": "gaminvest-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Integration test now selects the company by CIF (two companies are named GAMINVEST SRL)."
+    },
+    {
+      "company": "RANDSTAD ROMANIA SRL",
+      "brand": "RANDSTAD",
+      "cif": "17549799",
+      "owner": "TheTatu13",
+      "repo": "randstad-romania-nodejs-scraper",
+      "local_dir": "randstad-romania-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). OPEN: the Solr company core record for this CIF still holds EPAM data, so integration tests fail until it is corrected by the Solr admins."
+    },
+    {
+      "company": "PRINCIPAL33 S.R.L.",
+      "brand": "principal33",
+      "cif": "42574513",
+      "owner": "TheTatu13",
+      "repo": "principal33-srl-nodejs-scraper",
+      "local_dir": "principal33-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Workflows had been auto-disabled for inactivity; re-enabled."
+    },
+    {
+      "company": "CONTINENTAL HOTELS SA",
+      "brand": "Continental Hotels",
+      "cif": "1559737",
+      "owner": "TheTatu13",
+      "repo": "continental-hotels-srl-nodejs-scraper",
+      "local_dir": "continental-hotels-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). OPEN: the Solr company record has no career field, so one integration test fails until it is added."
+    },
+    {
+      "company": "SENIOR SOFTWARE AGENCY SRL",
+      "brand": "Senior Software",
+      "cif": "15525700",
+      "owner": "TheTatu13",
+      "repo": "senior-software-agency-srl-nodejs-scraper",
+      "local_dir": "senior-software-agency-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+    },
+    {
+      "company": "AMA R\u0026D GROUPE SRL",
+      "brand": "AMA R\u0026D Groupe", "cif": "",
+      "owner": "TheTatu13",
+      "repo": "ama-r-d-groupe-srl-nodejs-scraper",
+      "local_dir": "ama-r-d-groupe-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). NOT CONFIGURED: config/company.json still holds EPAM template data; scraper never adapted; also needs the SOLR_AUTH secret. Workflows re-enabled."
+    },
+    {
+      "company": "WIZZ AIR",
+      "brand": "Wizz Air", "cif": "",
+      "owner": "TheTatu13",
+      "repo": "wizzair-nodejs-scraper",
+      "local_dir": "wizzair-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). NOT CONFIGURED: config/company.json still holds EPAM template data, 0 jobs scraped; needs the SOLR_AUTH secret. Topics added."
     }
   ]
 }
