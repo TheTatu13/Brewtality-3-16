@@ -183,6 +183,30 @@
       "template_version": "v1",
       "status": "active",
       "notes": "Lives under the peviitor-scrapers org and, like e-infra-sa-python-scraper, was derived before its GitHub org transfer -- every internal link (README badges, docs/index.html, docs/company.json + scraper/config/company.json scraperFile, ai/*.md, CONTRIBUTING.md, and a hardcoded assertion in tests/consistency/test_readme.py) still pointed at the stale ale23yfm owner, 404'ing every button on the live page. Fixed to peviitor-scrapers everywhere (90/90 tests pass). docs/index.html re-themed to the dark fleet UI (was still on the original warm/cream theme) and the dark test-results hub generator (navbar with direct Unit/Integration/E2E links + suite-path-to-GitHub-source links) added to automation-testing.yml, matching the current template. Scrapes the EVOLUTION WordPress JSON careers API (careers.evolution.com), not a generic HTML board -- scraper/index.py's parsing logic was left as-is."
+    },
+    {
+      "company": "CONNATIX NATIVE EXCHANGE ROMANIA SRL",
+      "brand": "CONNATIX",
+      "cif": "35861771",
+      "owner": "TheTatu13",
+      "repo": "connatix-native-exchange-romania-srl-nodejs-scraper",
+      "local_dir": "connatix-native-exchange-romania-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. Was failing 10/10 CI runs because src/anaf.js only used demoanaf.ro, which now answers 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). README/docs/index.html/scraperFile/CODEOWNERS still pointed at sebiboga -- repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). NOT yet covered by branch protection, weekly health-summary or template-sync-check (as of 2026-10-02)."
+    },
+    {
+      "company": "SOBIS AP S.R.L.",
+      "brand": "SOBIS",
+      "cif": "52200796",
+      "owner": "TheTatu13",
+      "repo": "sobis-ap-srl-nodejs-scraper",
+      "local_dir": "sobis-ap-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. CI was green only because a cached company.json masked demoanaf.ro now answering 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). Stale sebiboga links in README/docs/CODEOWNERS repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). NOT yet covered by branch protection, weekly health-summary or template-sync-check (as of 2026-10-02)."
     }
   ]
 }
