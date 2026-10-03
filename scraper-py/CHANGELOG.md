@@ -61,7 +61,7 @@
 - `scrape.yml` / `tests.yml` split into a thin **caller** file (unchanged
   triggers, kept in this repo for copy-pasting into new scrapers) plus the
   actual logic moved into `scrape-reusable.yml` / `tests-reusable.yml`,
-  called via `uses: TheTatu13/Brewtality-3-16/.github/workflows/*.yml@v1`.
+  called via `uses: peviitor-scrapers/Brewtality-3-16/.github/workflows/*.yml@v1`.
   A fix landed here now reaches every derived scraper that calls it on its
   next run, instead of being hand-applied to each repo separately (which is
   how the two fixes above ended up needing five identical patches).

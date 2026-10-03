@@ -28,7 +28,7 @@ jobs:
       - name: Check out the template's digest script
         uses: actions/checkout@v5
         with:
-          repository: TheTatu13/Brewtality-3-16
+          repository: peviitor-scrapers/Brewtality-3-16
           path: _template
 
       - name: Build and post the weekly digest

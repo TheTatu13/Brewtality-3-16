@@ -47,7 +47,7 @@ if sys.platform == "win32":
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PARENT = ROOT.parent
-TEMPLATE_URL = "https://github.com/TheTatu13/Brewtality-3-16.git"
+TEMPLATE_URL = "https://github.com/peviitor-scrapers/Brewtality-3-16.git"
 DEFAULT_OWNER = "TheTatu13"
 
 SUFFIX_RX = re.compile(r"\b(s\.?r\.?l\.?|s\.?a\.?|p\.?f\.?a\.?|s\.?n\.?c\.?|inc\.?|ltd\.?|llc)\b", re.I)

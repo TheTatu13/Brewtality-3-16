@@ -364,7 +364,7 @@ def main() -> None:
     print(f"        then run the tests ({test}).")
     print("\n  This scraper isn't done until DEFINITION_OF_DONE.md's checklist is")
     print("  clear (it didn't come along in the derivation -- it's a template-repo")
-    print("  doc, not a per-scraper one; read it at github.com/TheTatu13/Brewtality-3-16).\n")
+    print("  doc, not a per-scraper one; read it at github.com/peviitor-scrapers/Brewtality-3-16).\n")
 
 
 if __name__ == "__main__":

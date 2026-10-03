@@ -435,7 +435,7 @@ async function main() {
   console.log("        then run the tests (" + (lang === "js" ? "npm install && npm run test:unit" : "pip install -e \".[dev]\" && pytest -q") + ").");
   console.log("\n  This scraper isn't done until DEFINITION_OF_DONE.md's checklist is");
   console.log("  clear (it didn't come along in the derivation -- it's a template-repo");
-  console.log("  doc, not a per-scraper one; read it at github.com/TheTatu13/Brewtality-3-16).\n");
+  console.log("  doc, not a per-scraper one; read it at github.com/peviitor-scrapers/Brewtality-3-16).\n");
 }
 
 main().catch((err) => {

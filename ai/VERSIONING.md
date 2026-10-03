@@ -5,7 +5,7 @@ Every derived scraper's caller workflows (`scrape.yml`, `tests.yml`,
 workflows by tag, e.g.:
 
 ```yaml
-uses: TheTatu13/Brewtality-3-16/.github/workflows/scrape-reusable.yml@v1
+uses: peviitor-scrapers/Brewtality-3-16/.github/workflows/scrape-reusable.yml@v1
 ```
 
 `v1` is a **floating tag** — it gets moved forward (`git tag -f v1 <sha> &&

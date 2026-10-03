@@ -170,7 +170,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Was never registered here after the sebiboga transfer -- GitHub Pages wasn't even enabled (fixed 2026-09-25) and homepage URL still pointed at sebiboga.github.io (fixed). Uses the older flat scraper/ layout (no scraper/ subfolder) and the job-seeker-ro-spider.yml workflow name. Branch protection added 2026-10-02; weekly health-summary NOT added because Issues are disabled on this repo (gh issue list fails) -- enable Issues in repo settings first."
+      "notes": "Was never registered here after the sebiboga transfer -- GitHub Pages wasn't even enabled (fixed 2026-09-25) and homepage URL still pointed at peviitor-scrapers.github.io (fixed). Uses the older flat scraper/ layout (no scraper/ subfolder) and the job-seeker-ro-spider.yml workflow name. Branch protection added 2026-10-02; weekly health-summary NOT added because Issues are disabled on this repo (gh issue list fails) -- enable Issues in repo settings first."
     },
     {
       "company": "EVOLUTION PRODUCTS RO S.R.L.",

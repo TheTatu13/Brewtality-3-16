@@ -36,7 +36,7 @@ a `gh` command once (marked ☐ manual).
       that's empty-string-truthy-bug territory on a `schedule` trigger).
 - [ ] `tests.yml` — calls `tests-reusable.yml@v1`.
 - [ ] `automation-template-sync-check.yml` — present, and actually able to
-      find updates (it hardcodes `TheTatu13/Brewtality-3-16` + the correct
+      find updates (it hardcodes `peviitor-scrapers/Brewtality-3-16` + the correct
       per-language `CHANGELOG.md` path; it does **not** rely on GitHub's
       `template_repository` metadata, which is never set for a repo created
       by `gh repo create --source=.`).

@@ -25,7 +25,7 @@ jobs:
           # actual template instead of relying on metadata that isn't set.
           # Brewtality-3-16 has no root CHANGELOG.md, so point at its
           # Node-side one.
-          echo "repo=TheTatu13/Brewtality-3-16" >> "$GITHUB_OUTPUT"
+          echo "repo=peviitor-scrapers/Brewtality-3-16" >> "$GITHUB_OUTPUT"
           echo "changelog_path=scraper-js/CHANGELOG.md" >> "$GITHUB_OUTPUT"
 
       - name: Fetch versions

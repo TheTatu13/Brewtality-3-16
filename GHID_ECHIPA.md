@@ -2,7 +2,7 @@
 
 Acest document e pentru oricine din echipă vrea să creeze un scraper nou
 pentru o companie, pornind de la template-ul oficial **Brewtality 3:16**
-(`github.com/TheTatu13/Brewtality-3-16`). Nu trebuie să știi Node.js sau
+(`github.com/peviitor-scrapers/Brewtality-3-16`). Nu trebuie să știi Node.js sau
 Python în profunzime ca să-l folosești — dar trebuie să înțelegi logica de
 mai jos ca să știi *ce* modifici când ceva nu merge din prima.
 
@@ -45,7 +45,7 @@ produc exact același rezultat: joburi trimise către `api.peviitor.ro`.
 
 ```bash
 # 1. Clonezi template-ul într-un folder nou, cu numele companiei
-git clone https://github.com/TheTatu13/Brewtality-3-16.git nume-companie-scraper
+git clone https://github.com/peviitor-scrapers/Brewtality-3-16.git nume-companie-scraper
 cd nume-companie-scraper
 
 # 2. Rulezi scriptul interactiv (alege UNUL dintre cele două)
@@ -90,8 +90,8 @@ git add -A
 git commit -m "Initial scraper for ACME WIDGETS SRL"
 
 # 5. (opțional) Creezi repo-ul pe GitHub și dai push
-gh repo create TheTatu13/acme-widgets-nodejs-scraper --public --source=. --push
-gh repo edit TheTatu13/acme-widgets-nodejs-scraper \
+gh repo create peviitor-scrapers/acme-widgets-nodejs-scraper --public --source=. --push
+gh repo edit peviitor-scrapers/acme-widgets-nodejs-scraper \
   --add-topic job-seeker-ro-spider --add-topic peviitor-ro
 ```
 
