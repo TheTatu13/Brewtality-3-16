@@ -1,0 +1,9 @@
+{
+  "commit_message": "feat(company): validate the peviitor company-core model\n\nPropagated from the Brewtality-3-16 template (commit 41cf4f9). Adds COMPANY_MODEL_FIELDS + a validator describing the shape of a peviitor company-core document, and a consistency test that fetches this scraper's live record and checks it against the model on every CI run -- so a stale or malformed record (the kind of thing that sat unnoticed for weeks in the 2026-09-24 Hochland case) gets flagged instead of silently drifting.",
+  "changes": [
+    { "lang": "js", "src": "scraper/company.js" },
+    { "lang": "js", "src": "tests/consistency/company-model.test.js" },
+    { "lang": "py", "src": "scraper/company.py" },
+    { "lang": "py", "src": "tests/consistency/test_company_model.py" }
+  ]
+}

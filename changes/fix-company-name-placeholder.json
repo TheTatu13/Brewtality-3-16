@@ -1,0 +1,6 @@
+{
+  "commit_message": "fix(ci): resolve real company name into test-report titles, don't leave {{COMPANY_NAME}} literal\n\nPropagated from the Brewtality-3-16 template (commit 550ffc9). scrape.yml's sed steps hard-coded the literal token {{COMPANY_NAME}} in test-report titles instead of the real company name, which tests/consistency/no-leftover-placeholders.test.js correctly flags as a surviving template token -- this is what caused every fleet repo's push-triggered Tests workflow to fail today. Fixed to read the real name via jq at each step and substitute it as a shell variable.",
+  "changes": [
+    { "lang": "js", "src": ".github/workflows/scrape.yml" }
+  ]
+}
