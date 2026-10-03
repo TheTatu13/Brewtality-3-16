@@ -313,8 +313,8 @@
       "local_dir": "ama-r-d-groupe-srl-nodejs-scraper",
       "language": "js",
       "template_version": "v1",
-      "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). NOT CONFIGURED: config/company.json still holds EPAM template data; scraper never adapted; also needs the SOLR_AUTH secret. Workflows re-enabled."
+      "status": "archived",
+      "notes": "Archived 2026-10-03. Never had a usable source: the company has no careers page, config/company.json still held EPAM template data, and scheduled runs failed on the missing SOLR_AUTH secret. Repo archived on GitHub (workflows stop). Unarchive and migrate to the api.peviitor.ro layer (see mejix/wizzair) if a source ever appears."
     },
     {
       "company": "WIZZ AIR MALTA LIMITED LUQA - SUCURSALA OTOPENI",
