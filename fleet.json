@@ -194,7 +194,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. Was failing 10/10 CI runs because src/anaf.js only used demoanaf.ro, which now answers 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). README/docs/index.html/scraperFile/CODEOWNERS still pointed at sebiboga -- repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). Branch protection (no force-push/deletion) and weekly health-summary added 2026-10-02. template-sync-check intentionally NOT added: this flat EPAM-derived layout is not syncable from scraper-js and would open a permanent false 'template update available' issue."
+      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. Was failing 10/10 CI runs because src/anaf.js only used demoanaf.ro, which now answers 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). README/docs/index.html/scraperFile/CODEOWNERS still pointed at sebiboga -- repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). Branch protection (no force-push/deletion) and weekly health-summary added 2026-10-02. template-sync-check intentionally NOT added: this flat EPAM-derived layout is not syncable from scraper-js and would open a permanent false 'template update available' issue. Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "SOBIS AP S.R.L.",
@@ -206,7 +206,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. CI was green only because a cached company.json masked demoanaf.ro now answering 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). Stale sebiboga links in README/docs/CODEOWNERS repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). Branch protection (no force-push/deletion) and weekly health-summary added 2026-10-02. template-sync-check intentionally NOT added: this flat EPAM-derived layout is not syncable from scraper-js and would open a permanent false 'template update available' issue."
+      "notes": "Transferred from sebiboga on 2026-09-28 and never registered here. CI was green only because a cached company.json masked demoanaf.ro now answering 402 Payment Required; ported the template anaf.js (cuiscan/cuifirma fallbacks) + its unit test (2026-10-02). Stale sebiboga links in README/docs/CODEOWNERS repointed to TheTatu13. Derived from the EPAM template (older flat layout, no scraper/ subfolder). Branch protection (no force-push/deletion) and weekly health-summary added 2026-10-02. template-sync-check intentionally NOT added: this flat EPAM-derived layout is not syncable from scraper-js and would open a permanent false 'template update available' issue. Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "SMEDIX LLC ST. LOUIS SUCURSALA CLUJ NAPOCA",
@@ -218,7 +218,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "YARDI CALL CENTER SRL",
@@ -230,7 +230,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "RAPEL SRL",
@@ -242,7 +242,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). NOT migrated (2026-10-03): still direct-SOLR+SOLR_AUTH. Its CIF has 7 digits and Solr stores company id and job cif UNPADDED, while api.peviitor.ro needs 8-digit padded CIFs -- migrating now would create a duplicate company doc and leave old jobs invisible. Needs a one-off id normalization (padded) first."
     },
     {
       "company": "GAMINVEST SRL",
@@ -254,7 +254,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Integration test now selects the company by CIF (two companies are named GAMINVEST SRL)."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Integration test now selects the company by CIF (two companies are named GAMINVEST SRL). Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "RANDSTAD ROMANIA SRL",
@@ -266,7 +266,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). OPEN: the Solr company core record for this CIF still holds EPAM data, so integration tests fail until it is corrected by the Solr admins."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). OPEN: the Solr company core record for this CIF still holds EPAM data, so integration tests fail until it is corrected by the Solr admins. Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "PRINCIPAL33 S.R.L.",
@@ -278,7 +278,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Workflows had been auto-disabled for inactivity; re-enabled."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Workflows had been auto-disabled for inactivity; re-enabled. Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "CONTINENTAL HOTELS SA",
@@ -290,7 +290,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). OPEN: the Solr company record has no career field, so one integration test fails until it is added."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). OPEN: the Solr company record has no career field, so one integration test fails until it is added. NOT migrated (2026-10-03): still direct-SOLR+SOLR_AUTH. Its CIF has 7 digits and Solr stores company id and job cif UNPADDED, while api.peviitor.ro needs 8-digit padded CIFs -- migrating now would create a duplicate company doc and leave old jobs invisible. Needs a one-off id normalization (padded) first."
     },
     {
       "company": "SENIOR SOFTWARE AGENCY SRL",
@@ -302,7 +302,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
+      "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js). Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     },
     {
       "company": "AMA R&D GROUPE SRL",
@@ -338,7 +338,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Transferred from sebiboga. Gem job-board API (api.gem.com). Premium layer (retry, canary, dry-run, official-ANAF fallback). CODEOWNERS/scraperFile repointed to TheTatu13 (2026-10-03)."
+      "notes": "Transferred from sebiboga. Gem job-board API (api.gem.com). Premium layer (retry, canary, dry-run, official-ANAF fallback). CODEOWNERS/scraperFile repointed to TheTatu13 (2026-10-03). Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix/wizzair); no secret needed. Manual job-recovery-from-disaster workflow still uses direct SOLR + SOLR_AUTH (left untouched). upsertJobs skips the upload on 0 jobs (API 400s on an empty array)."
     }
   ]
 }
