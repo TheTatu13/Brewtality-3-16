@@ -305,8 +305,9 @@
       "notes": "Transferred from sebiboga on 2026-10-02. Ported the template anaf.js (cuiscan/cuifirma fallbacks, demoanaf.ro now answers 402) + its unit test; sebiboga links repointed to TheTatu13 (2026-10-03). EPAM-derived flat layout (not syncable from scraper-js)."
     },
     {
-      "company": "AMA R\u0026D GROUPE SRL",
-      "brand": "AMA R\u0026D Groupe", "cif": "",
+      "company": "AMA R&D GROUPE SRL",
+      "brand": "AMA R&D Groupe",
+      "cif": "",
       "owner": "TheTatu13",
       "repo": "ama-r-d-groupe-srl-nodejs-scraper",
       "local_dir": "ama-r-d-groupe-srl-nodejs-scraper",
@@ -317,7 +318,8 @@
     },
     {
       "company": "WIZZ AIR MALTA LIMITED LUQA - SUCURSALA OTOPENI",
-      "brand": "Wizz Air", "cif": "46966293",
+      "brand": "Wizz Air",
+      "cif": "46966293",
       "owner": "TheTatu13",
       "repo": "wizzair-nodejs-scraper",
       "local_dir": "wizzair-nodejs-scraper",
@@ -325,6 +327,18 @@
       "template_version": "v1",
       "status": "active",
       "notes": "Built 2026-10-03 on the SAP SuccessFactors sitemap (careers.wizzair.com/sitemap.xml -> job pages, RO filter). Company: WIZZ AIR MALTA LIMITED LUQA - SUCURSALA OTOPENI (CIF 46966293). Premium layer (retry/backoff, canary, dry-run) + official ANAF fallback. OPEN: SOLR_AUTH secret must be set on the repo (integration/ensure steps return 401 without it)."
+    },
+    {
+      "company": "SENNDER BUCHAREST S.R.L.",
+      "brand": "sennder",
+      "cif": "45780151",
+      "owner": "TheTatu13",
+      "repo": "sennder-bucharest-srl-nodejs-scraper",
+      "local_dir": "sennder-bucharest-srl-nodejs-scraper",
+      "language": "js",
+      "template_version": "v1",
+      "status": "active",
+      "notes": "Transferred from sebiboga. Gem job-board API (api.gem.com). Premium layer (retry, canary, dry-run, official-ANAF fallback). CODEOWNERS/scraperFile repointed to TheTatu13 (2026-10-03)."
     }
   ]
 }
