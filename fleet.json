@@ -326,7 +326,7 @@
       "language": "js",
       "template_version": "v1",
       "status": "active",
-      "notes": "Built 2026-10-03 on the SAP SuccessFactors sitemap (careers.wizzair.com/sitemap.xml -> job pages, RO filter). Company: WIZZ AIR MALTA LIMITED LUQA - SUCURSALA OTOPENI (CIF 46966293). Premium layer (retry/backoff, canary, dry-run) + official ANAF fallback. OPEN: SOLR_AUTH secret must be set on the repo (integration/ensure steps return 401 without it)."
+      "notes": "Built 2026-10-03 on the SAP SuccessFactors sitemap (careers.wizzair.com/sitemap.xml -> job pages, RO filter). Company: WIZZ AIR MALTA LIMITED LUQA - SUCURSALA OTOPENI (CIF 46966293). Premium layer (retry/backoff, canary, dry-run) + official ANAF fallback. Migrated 2026-10-03 off direct-SOLR+SOLR_AUTH onto api.peviitor.ro (same layer as mejix); no secret needed. Verified live: 2 jobs on peviitor.ro."
     },
     {
       "company": "SENNDER BUCHAREST S.R.L.",
